@@ -1,0 +1,14 @@
+{
+  "@now": "2026-07-03T12:00:00Z",
+  "AzureActivity": [
+    {"TimeGenerated": "2026-07-03T11:05:00Z", "Caller": "priya@contoso.com", "OperationNameValue": "Microsoft.Compute/virtualMachines/write", "ActivityStatusValue": "Success", "ResourceGroup": "rg-prod"},
+    {"TimeGenerated": "2026-07-03T11:12:00Z", "Caller": "priya@contoso.com", "OperationNameValue": "Microsoft.Compute/virtualMachines/delete", "ActivityStatusValue": "Failed", "ResourceGroup": "rg-prod"},
+    {"TimeGenerated": "2026-07-03T11:18:00Z", "Caller": "priya@contoso.com", "OperationNameValue": "Microsoft.Compute/disks/write", "ActivityStatusValue": "Failed", "ResourceGroup": "rg-prod"},
+    {"TimeGenerated": "2026-07-03T11:20:00Z", "Caller": "priya@contoso.com", "OperationNameValue": "Microsoft.Network/networkSecurityGroups/write", "ActivityStatusValue": "Failed", "ResourceGroup": "rg-net"},
+    {"TimeGenerated": "2026-07-03T11:25:00Z", "Caller": "sam@contoso.com", "OperationNameValue": "Microsoft.Compute/virtualMachines/delete", "ActivityStatusValue": "Failed", "ResourceGroup": "rg-prod"},
+    {"TimeGenerated": "2026-07-03T11:31:00Z", "Caller": "PRIYA@contoso.com", "OperationNameValue": "Microsoft.Compute/virtualMachines/delete", "ActivityStatusValue": "Failed", "ResourceGroup": "rg-prod"},
+    {"TimeGenerated": "2026-07-03T11:40:00Z", "Caller": "priya@contoso.com", "OperationNameValue": "Microsoft.Compute/virtualMachines/start/action", "ActivityStatusValue": "Success", "ResourceGroup": "rg-prod"},
+    {"TimeGenerated": "2026-07-03T11:47:00Z", "Caller": "priya@contoso.com", "OperationNameValue": "Microsoft.Authorization/roleAssignments/write", "ActivityStatusValue": "Failed", "ResourceGroup": "rg-prod"},
+    {"TimeGenerated": "2026-07-03T11:52:00Z", "Caller": "automation@contoso.com", "OperationNameValue": "Microsoft.Compute/virtualMachines/delete", "ActivityStatusValue": "Failed", "ResourceGroup": "rg-prod"}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "title": "KQL: count heartbeats per hour with bin()",
+  "objective": "Query and analyze logs in Azure Monitor",
+  "est_min": 10,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["kql", "monitoring"]
+}

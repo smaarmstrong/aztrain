@@ -1,0 +1,4 @@
+[
+  {"OperationNameValue": "Microsoft.Compute/disks/write", "ResourceGroup": "rg-prod"},
+  {"OperationNameValue": "Microsoft.Compute/virtualMachines/delete", "ResourceGroup": "rg-prod"}
+]
