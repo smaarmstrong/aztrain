@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "mode": "",
+    "displayName": "Deny storage accounts without HTTPS-only",
+    "description": "Blocks storage accounts that allow plain-HTTP traffic.",
+    "policyRule": {
+      "if": {},
+      "then": {
+        "effect": ""
+      }
+    }
+  }
+}

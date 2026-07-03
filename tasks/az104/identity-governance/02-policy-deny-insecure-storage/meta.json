@@ -1,0 +1,9 @@
+{
+  "title": "Author an Azure Policy that denies storage accounts without HTTPS-only",
+  "objective": "Implement and manage Azure Policy",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["policy", "governance", "json", "storage"]
+}

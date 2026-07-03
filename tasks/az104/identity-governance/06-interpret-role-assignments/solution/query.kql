@@ -1,0 +1,6 @@
+RoleAssignments
+| where principalType == "User"
+| where roleDefinitionName == "Owner"
+| where scopeLevel == "Subscription"
+| project principalName, roleDefinitionName
+| sort by principalName asc

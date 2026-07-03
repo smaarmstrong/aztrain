@@ -1,0 +1,9 @@
+{
+  "title": "Author a least-privilege custom RBAC role: VM Operator",
+  "objective": "Manage built-in Azure roles",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["rbac", "roles", "json", "least-privilege"]
+}
