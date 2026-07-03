@@ -23,5 +23,8 @@ jobs:
       - name: KQL engine unit tests
         run: python3 tools/test_kqlmini.py
 
+      - name: YAML parser unit tests
+        run: python3 tools/test_yamlmini.py
+
       - name: Selftest (structure, coverage, fail-before/pass-after on all local tasks)
         run: ./selftest.py -j 4
