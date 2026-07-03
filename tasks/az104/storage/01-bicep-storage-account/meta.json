@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a locked-down StorageV2 account",
+  "objective": "Create and configure storage accounts",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "storage"]
+}

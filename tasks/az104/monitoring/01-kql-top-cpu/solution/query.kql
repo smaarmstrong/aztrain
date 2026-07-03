@@ -1,0 +1,5 @@
+Perf
+| where TimeGenerated > ago(1h)
+| where CounterName == "% Processor Time"
+| summarize AvgCpu = avg(CounterValue) by Computer
+| top 3 by AvgCpu

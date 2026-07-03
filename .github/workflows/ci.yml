@@ -1,0 +1,27 @@
+name: selftest
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ubuntu-latest ships the az CLI; Bicep tasks need the compiler too.
+      - name: Install bicep
+        run: az bicep install
+
+      - name: Runner smoke test
+        run: |
+          ./aztrain help
+          ./aztrain list
+
+      - name: KQL engine unit tests
+        run: python3 tools/test_kqlmini.py
+
+      - name: Selftest (structure, coverage, fail-before/pass-after on all local tasks)
+        run: ./selftest.py -j 4

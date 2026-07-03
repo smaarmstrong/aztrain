@@ -1,0 +1,10 @@
+{
+  "title": "Create and pin a dedicated training subscription (do this FIRST)",
+  "objective": "Safety rail: isolate all training from any work tenant",
+  "est_min": 30,
+  "difficulty": 1,
+  "kind": "live",
+  "est_cost": "free",
+  "bootstrap": true,
+  "tags": ["setup", "safety"]
+}
