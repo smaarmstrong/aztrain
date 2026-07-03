@@ -1,0 +1,9 @@
+{
+  "title": "KQL: top 3 computers by average CPU in the last hour",
+  "objective": "Query and analyze logs in Azure Monitor",
+  "est_min": 10,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["kql", "monitoring"]
+}

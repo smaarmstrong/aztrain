@@ -1,0 +1,489 @@
+#!/usr/bin/env python3
+"""
+aztrain — a console trainer for the Azure certification pathway (AZ-104 → AZ-400).
+
+Each task is a real job, not a flashcard: author Bicep that must compile to the
+right ARM JSON, write KQL/JMESPath queries graded against canned fixtures, or —
+for live tasks — fix real Azure state in a disposable resource group, graded by
+read-only `az` queries on the END STATE (any correct fix passes).
+
+Usage:
+    aztrain list [track|domain]    # all tasks, grouped, with your status
+    aztrain start  <id>            # set up the task (live: provisions its RG) and show the spec
+    aztrain check  <id>            # grade it (live: read-only az queries)
+    aztrain solution <id>          # reveal the reference solution
+    aztrain reset  <id>            # restore the starter scaffold (your work is backed up)
+    aztrain status                 # XP, streak, per-domain completion
+    aztrain teardown <id>|--all    # delete rg-aztrain-* resource groups (the ONLY destroyer)
+
+<id> is "track/domain/nn-name" or any unique trailing "nn-name" / "name".
+
+SAFETY RAILS
+    * Cloud-touching tasks (kind "whatif"/"live") refuse to run unless the active
+      az subscription equals the one pinned in ~/.config/aztrain/subscription.
+      Task setup/00-subscription-safety walks you through creating that pin.
+    * Every live task works inside its own resource group rg-aztrain-<task>,
+      created by its setup.sh and destroyed only by `aztrain teardown`.
+    * Graders only ever READ cloud state. Tasks marked est_cost "paid" refuse
+      to start without an explicit --i-am-paying flag.
+
+Local tasks need only Python >= 3.11 and (for Bicep tasks) `az bicep install`.
+Progress is stored in ~/.local/state/aztrain/progress.json.
+"""
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from datetime import date, timedelta
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent
+TASKS = REPO / "tasks"
+WORKSPACE = REPO / "workspace"
+STATE_DIR = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "aztrain"
+STATE = STATE_DIR / "progress.json"
+RG_CACHE = STATE_DIR / "rgcheck.json"
+PIN_FILE = Path(os.environ.get("AZTRAIN_PIN_FILE",
+                Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "aztrain/subscription"))
+RG_PREFIX = "rg-aztrain-"
+LOCATION = os.environ.get("AZTRAIN_LOCATION", "uksouth")
+MIN_PY = (3, 11)
+GUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+
+# ---- colours ---------------------------------------------------------------
+_tty = sys.stdout.isatty()
+def c(code, s):
+    return f"\033[{code}m{s}\033[0m" if _tty else s
+GRN = lambda s: c("32", s)
+RED = lambda s: c("31", s)
+YEL = lambda s: c("33", s)
+BLU = lambda s: c("34", s)
+MAG = lambda s: c("35", s)
+DIM = lambda s: c("2", s)
+BLD = lambda s: c("1", s)
+
+XP_BY_DIFFICULTY = {1: 10, 2: 15, 3: 25, 4: 40, 5: 60}
+KINDS = ("local", "whatif", "live")
+COSTS = ("free", "pennies", "paid")
+
+# ---- state -----------------------------------------------------------------
+def load_state():
+    try:
+        return json.loads(STATE.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"tasks": {}, "xp": 0, "streak": {"count": 0, "last": ""}}
+
+def save_state(st):
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    STATE.write_text(json.dumps(st, indent=2))
+
+def bump_streak(st):
+    today = date.today()
+    s = st["streak"]
+    if s["last"] == today.isoformat():
+        return
+    if s.get("last") and date.fromisoformat(s["last"]) == today - timedelta(days=1):
+        s["count"] += 1
+    else:
+        s["count"] = 1
+    s["last"] = today.isoformat()
+
+# ---- task discovery --------------------------------------------------------
+def discover():
+    """Return {task_id: meta_dict} for every task, sorted. IDs are the task
+    dir path relative to tasks/ — "az104/networking/01-nsg-allow-https" or
+    "setup/00-subscription-safety"."""
+    tasks = {}
+    if not TASKS.is_dir():
+        return tasks
+    for meta_path in sorted(TASKS.glob("**/meta.json")):
+        d = meta_path.parent
+        tid = d.relative_to(TASKS).as_posix()
+        try:
+            meta = json.loads(meta_path.read_text())
+        except json.JSONDecodeError as e:
+            print(YEL(f"warning: bad meta.json in {tid}: {e}"), file=sys.stderr)
+            continue
+        meta["_dir"] = d
+        tasks[tid] = meta
+    return tasks
+
+def resolve(tasks, ident):
+    """Accept a full id, or a unique trailing 'nn-name' / 'name'."""
+    ident = ident.strip("/")
+    if ident in tasks:
+        return ident
+    hits = [t for t in tasks if t.endswith("/" + ident)]
+    if not hits:
+        hits = [t for t in tasks if re.sub(r"^\d+-", "", t.rsplit("/", 1)[-1]) == ident]
+    if len(hits) == 1:
+        return hits[0]
+    if len(hits) > 1:
+        die(f"'{ident}' is ambiguous: {', '.join(hits)}")
+    die(f"no task called '{ident}' (try: aztrain list)")
+
+def die(msg):
+    print(RED(f"error: {msg}"), file=sys.stderr)
+    sys.exit(1)
+
+def domain_of(tid):
+    return tid.rsplit("/", 1)[0]
+
+def leaf_of(tid):
+    return tid.rsplit("/", 1)[-1]
+
+def rg_for(tid):
+    return RG_PREFIX + leaf_of(tid)
+
+# ---- az plumbing -----------------------------------------------------------
+def az(args, timeout=60):
+    """Run az, return (rc, stdout). Never raises on nonzero exit."""
+    if not shutil.which("az"):
+        die("the `az` CLI is not installed (https://aka.ms/azure-cli)")
+    p = subprocess.run(["az", *args], capture_output=True, text=True,
+                       stdin=subprocess.DEVNULL, timeout=timeout)
+    return p.returncode, p.stdout.strip()
+
+def pinned_sub():
+    """The subscription GUID pinned by setup/00, or None."""
+    try:
+        for line in PIN_FILE.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#"):
+                return line if GUID.match(line) else None
+    except FileNotFoundError:
+        pass
+    return None
+
+def active_sub():
+    rc, out = az(["account", "show", "--query", "id", "-o", "tsv"])
+    return out if rc == 0 and GUID.match(out) else None
+
+def guard_cloud(tid, meta):
+    """The rail: refuse to touch the cloud unless the active subscription is
+    the pinned training one. Bootstrap tasks (setup/00) are exempt — creating
+    the pin is their job — but everything they grade is still read-only."""
+    if meta.get("kind", "local") == "local":
+        return
+    if meta.get("bootstrap"):
+        return
+    pin = pinned_sub()
+    if not pin:
+        die(f"no pinned training subscription in {PIN_FILE}\n"
+            f"       complete the setup task first:  aztrain start setup/00-subscription-safety")
+    active = active_sub()
+    if not active:
+        die("not logged in to az (or no default subscription) — run: az login")
+    if active.lower() != pin.lower():
+        die(f"active subscription {active[:8]}… is NOT the pinned training subscription "
+            f"{pin[:8]}… — refusing to touch it.\n"
+            f"       switch with:  az account set -s {pin}")
+
+def guard_paid(meta, flags):
+    if meta.get("est_cost") == "free" or meta.get("kind", "local") == "local":
+        return
+    if meta.get("est_cost") == "paid" and "--i-am-paying" not in flags:
+        die("this task creates PAID resources (see meta.json est_cost). "
+            "Re-run with --i-am-paying if you accept the cost; teardown promptly.")
+
+def nag_leftovers():
+    """Warn (cheaply, cached 30 min) if rg-aztrain-* groups linger from a
+    previous session. Best-effort: silent on any az hiccup."""
+    pin = pinned_sub()
+    if not pin:
+        return
+    groups, fresh = None, False
+    try:
+        cache = json.loads(RG_CACHE.read_text())
+        if time.time() - cache.get("ts", 0) < 1800:
+            groups, fresh = cache.get("groups", []), True
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+    if not fresh:
+        try:
+            if (active_sub() or "").lower() != pin.lower():
+                return
+            rc, out = az(["group", "list", "--query",
+                          f"[?starts_with(name, '{RG_PREFIX}')].name", "-o", "json"], timeout=30)
+            if rc != 0:
+                return
+            groups = json.loads(out)
+            RG_CACHE.parent.mkdir(parents=True, exist_ok=True)
+            RG_CACHE.write_text(json.dumps({"ts": time.time(), "groups": groups}))
+        except Exception:
+            return
+    if groups:
+        print(YEL(f"⚠ leftover training resource groups: {', '.join(sorted(groups))}"))
+        print(YEL(f"  they may be costing you money — run: aztrain teardown --all"))
+
+def invalidate_rg_cache():
+    RG_CACHE.unlink(missing_ok=True)
+
+# ---- workspace -------------------------------------------------------------
+def ws_dir(tid):
+    return WORKSPACE / tid
+
+def populate_workspace(tid, meta, force=False):
+    """Copy the starter scaffold (if any) into workspace/<tid>."""
+    src = meta["_dir"]
+    dst = ws_dir(tid)
+    if dst.exists() and any(dst.iterdir()) and not force:
+        return dst
+    if force and dst.exists():
+        backup = dst.with_name(dst.name + ".bak")
+        shutil.rmtree(backup, ignore_errors=True)
+        shutil.copytree(dst, backup)
+        shutil.rmtree(dst)
+        print(DIM(f"previous work backed up to {backup.relative_to(REPO)}"))
+    dst.mkdir(parents=True, exist_ok=True)
+    starter = src / "starter"
+    if starter.is_dir():
+        shutil.copytree(starter, dst, dirs_exist_ok=True)
+    return dst
+
+def grader_env(tid, meta):
+    env = os.environ.copy()
+    env.update({
+        "AZTRAIN_REPO": str(REPO),
+        "AZTRAIN_TASK_DIR": str(meta["_dir"]),
+        "AZTRAIN_WS": str(ws_dir(tid)),
+        "AZTRAIN_RG": rg_for(tid),
+        "AZTRAIN_LOCATION": LOCATION,
+        "AZTRAIN_TASK_ID": tid,
+    })
+    return env
+
+def run_task_script(tid, meta, name, timeout=None):
+    """Run a task's setup.sh / grade.sh / solution.sh with the task env.
+    Returns (rc, combined_output)."""
+    script = meta["_dir"] / name
+    if not script.exists():
+        return None, f"(no {name})"
+    p = subprocess.run(["bash", str(script)], capture_output=True, text=True,
+                       env=grader_env(tid, meta), cwd=str(ws_dir(tid)),
+                       stdin=subprocess.DEVNULL,
+                       timeout=timeout or meta.get("timeout", 300))
+    return p.returncode, (p.stdout + p.stderr).rstrip()
+
+def grade(tid, meta):
+    """Grade a task. Local graders run against the workspace; cloud graders
+    additionally see AZTRAIN_RG. Returns (passed, output)."""
+    ws = ws_dir(tid)
+    ws.mkdir(parents=True, exist_ok=True)
+    rc, out = run_task_script(tid, meta, "grade.sh")
+    if rc is None:
+        die(f"task {tid} has no grade.sh — the task is broken, please report it")
+    return rc == 0, out
+
+# ---- badges ----------------------------------------------------------------
+def badge(meta):
+    kind = meta.get("kind", "local")
+    cost = meta.get("est_cost", "free")
+    if kind == "local":
+        return DIM("[local]")
+    col = {"free": GRN, "pennies": YEL, "paid": RED}.get(cost, YEL)
+    return col(f"[{kind}·{cost}]")
+
+# ---- commands ----------------------------------------------------------------
+def cmd_list(args):
+    tasks = discover()
+    st = load_state()
+    only = args[0].strip("/") if args else None
+    nag_leftovers()
+    domains = {}
+    for tid, meta in tasks.items():
+        domains.setdefault(domain_of(tid), []).append((tid, meta))
+    known = set(domains) | {d.split("/")[0] for d in domains}
+    if only and only not in known:
+        die(f"no track/domain '{only}' (have: {', '.join(sorted(known))})")
+    for dom in sorted(domains):
+        if only and dom != only and not dom.startswith(only + "/"):
+            continue
+        rows = domains[dom]
+        done = sum(1 for tid, _ in rows if st["tasks"].get(tid, {}).get("passed"))
+        print(f"\n{BLD(BLU(dom))} {DIM(f'({done}/{len(rows)})')}")
+        for tid, meta in rows:
+            rec = st["tasks"].get(tid, {})
+            mark = GRN("✓") if rec.get("passed") else (YEL("…") if rec.get("attempts") else DIM("·"))
+            stars = MAG("★" * meta.get("difficulty", 1))
+            print(f"  {mark} {leaf_of(tid):<32} {stars:<18} {badge(meta):<24} "
+                  f"{DIM(str(meta.get('est_min', '?')) + 'm')}  {meta['title']}")
+    if not only:
+        total = len(tasks)
+        done = sum(1 for t in tasks if st["tasks"].get(t, {}).get("passed"))
+        print(f"\n{BLD(f'{done}/{total} tasks complete')} — "
+              f"{st['xp']} XP, {st['streak']['count']}-day streak")
+
+def cmd_start(args):
+    flags = [a for a in args if a.startswith("--")]
+    args = [a for a in args if not a.startswith("--")]
+    if not args:
+        die("usage: aztrain start <id>")
+    tasks = discover()
+    tid = resolve(tasks, args[0])
+    meta = tasks[tid]
+    guard_paid(meta, flags)
+    guard_cloud(tid, meta)
+    if meta.get("kind") in ("whatif", "live"):
+        nag_leftovers()
+    ws = populate_workspace(tid, meta)
+    if (meta["_dir"] / "setup.sh").exists():
+        print(DIM(f"running setup for {tid} "
+                  + (f"(resource group {rg_for(tid)})..." if meta.get("kind") == "live" else "...")))
+        rc, out = run_task_script(tid, meta, "setup.sh")
+        invalidate_rg_cache()
+        if rc != 0:
+            print(out)
+            die(f"setup failed for {tid} — nothing to do until that's fixed "
+                f"(re-run start; teardown if it half-created things)")
+    print(BLD(f"\n=== {meta['title']} ") + DIM(f"[{tid}]") + " " + badge(meta))
+    print(DIM(f"difficulty {'★' * meta.get('difficulty', 1)} · ~{meta.get('est_min', '?')} min"
+              f" · objective: {meta.get('objective', '?')}"))
+    print()
+    print((meta["_dir"] / "prompt.md").read_text())
+    print(BLD("Your workspace: ") + str(ws.relative_to(REPO)) + "/")
+    if meta.get("kind") == "live":
+        print(BLD("Resource group: ") + rg_for(tid)
+              + DIM(f"  (destroy later with: aztrain teardown {leaf_of(tid)})"))
+    print(DIM(f"When ready:     aztrain check {tid}"))
+
+def cmd_check(args):
+    flags = [a for a in args if a.startswith("--")]
+    args = [a for a in args if not a.startswith("--")]
+    if not args:
+        die("usage: aztrain check <id>")
+    tasks = discover()
+    tid = resolve(tasks, args[0])
+    meta = tasks[tid]
+    guard_paid(meta, flags)
+    guard_cloud(tid, meta)
+    passed, output = grade(tid, meta)
+    st = load_state()
+    rec = st["tasks"].setdefault(tid, {"passed": False, "attempts": 0})
+    rec["attempts"] += 1
+    print(output)
+    if passed:
+        print(GRN(BLD("PASS")) + f" — {meta['title']}")
+        if not rec["passed"]:
+            xp = XP_BY_DIFFICULTY.get(meta.get("difficulty", 1), 10)
+            st["xp"] += xp
+            bump_streak(st)
+            print(GRN(f"+{xp} XP") + DIM(f"  (total {st['xp']}, streak {st['streak']['count']})"))
+        rec["passed"] = True
+        if meta.get("kind") == "live":
+            print(YEL(f"remember: aztrain teardown {leaf_of(tid)}  (the RG keeps existing until you do)"))
+    else:
+        print(RED(BLD("FAIL")) + f" — {meta['title']}")
+        print(DIM(f"Hint: aztrain solution {tid} shows a reference answer."))
+    save_state(st)
+    if not passed:
+        sys.exit(1)
+
+def cmd_solution(args):
+    if not args:
+        die("usage: aztrain solution <id>")
+    tasks = discover()
+    tid = resolve(tasks, args[0])
+    meta = tasks[tid]
+    print(BLD(f"Reference solution — {meta['title']}\n"))
+    sol_dir = meta["_dir"] / "solution"
+    sol_sh = meta["_dir"] / "solution.sh"
+    if sol_dir.is_dir():
+        for f in sorted(p for p in sol_dir.rglob("*") if p.is_file()):
+            print(BLU(f"--- {f.relative_to(sol_dir)} ---"))
+            print(f.read_text())
+    elif sol_sh.exists():
+        print(sol_sh.read_text())
+    else:
+        die(f"task {tid} ships no solution — the task is broken, please report it")
+
+def cmd_reset(args):
+    if not args:
+        die("usage: aztrain reset <id>")
+    tasks = discover()
+    tid = resolve(tasks, args[0])
+    populate_workspace(tid, tasks[tid], force=True)
+    print(f"workspace for {tid} reset to the starter scaffold")
+
+def cmd_status(_args):
+    tasks = discover()
+    st = load_state()
+    nag_leftovers()
+    print(BLD(f"\nXP: {st['xp']}   streak: {st['streak']['count']} day(s)"
+              + (DIM(f"  (last active {st['streak']['last']})") if st['streak']['last'] else "")))
+    domains = {}
+    for tid in tasks:
+        domains.setdefault(domain_of(tid), []).append(tid)
+    print()
+    for dom in sorted(domains):
+        ids = domains[dom]
+        done = sum(1 for t in ids if st["tasks"].get(t, {}).get("passed"))
+        width = 24
+        filled = round(width * done / len(ids)) if ids else 0
+        bar = GRN("█" * filled) + DIM("░" * (width - filled))
+        print(f"  {dom:<28} {bar} {done}/{len(ids)}")
+    print()
+
+def cmd_teardown(args):
+    """Delete rg-aztrain-* resource groups — the ONLY thing in this repo that
+    ever destroys cloud state, and it refuses to touch any other name."""
+    if not args:
+        die("usage: aztrain teardown <id> [<id>...] | --all")
+    pin = pinned_sub()
+    if not pin:
+        die(f"no pinned subscription in {PIN_FILE} — nothing safe to tear down")
+    active = active_sub()
+    if not active or active.lower() != pin.lower():
+        die(f"active subscription is not the pinned training one — refusing. "
+            f"Switch with: az account set -s {pin}")
+    if "--all" in args:
+        rc, out = az(["group", "list", "--query",
+                      f"[?starts_with(name, '{RG_PREFIX}')].name", "-o", "json"], timeout=60)
+        if rc != 0:
+            die("could not list resource groups")
+        names = json.loads(out)
+    else:
+        tasks = discover()
+        names = [rg_for(resolve(tasks, a)) for a in args]
+    if not names:
+        print(GRN("nothing to tear down — no rg-aztrain-* groups exist"))
+        invalidate_rg_cache()
+        return
+    for name in sorted(set(names)):
+        if not name.startswith(RG_PREFIX):   # belt and braces
+            die(f"refusing to delete '{name}' — not an aztrain resource group")
+        rc, _ = az(["group", "show", "-n", name, "-o", "none"], timeout=30)
+        if rc != 0:
+            print(DIM(f"  · {name} (does not exist, skipped)"))
+            continue
+        rc, out = az(["group", "delete", "-n", name, "--yes", "--no-wait"], timeout=60)
+        if rc == 0:
+            print(GRN(f"  ✓ {name} deletion started"))
+        else:
+            print(RED(f"  ✗ {name}: {out or 'delete failed'}"))
+    invalidate_rg_cache()
+    print(DIM("deletions run in the background; re-run `aztrain status` later to confirm"))
+
+COMMANDS = {
+    "list": cmd_list, "start": cmd_start, "check": cmd_check,
+    "solution": cmd_solution, "reset": cmd_reset, "status": cmd_status,
+    "teardown": cmd_teardown,
+}
+
+def main():
+    if sys.version_info < MIN_PY:
+        die(f"aztrain needs Python >= {'.'.join(map(str, MIN_PY))}")
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help", "help"):
+        print(__doc__.strip())
+        return
+    fn = COMMANDS.get(args[0])
+    if not fn:
+        die(f"unknown command '{args[0]}' (try: aztrain help)")
+    fn(args[1:])
+
+if __name__ == "__main__":
+    main()

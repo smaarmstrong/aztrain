@@ -1,0 +1,18 @@
+{
+  "@now": "2026-07-03T12:00:00Z",
+  "Perf": [
+    {"TimeGenerated": "2026-07-03T11:10:00Z", "Computer": "web-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 80.0},
+    {"TimeGenerated": "2026-07-03T11:30:00Z", "Computer": "web-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 85.0},
+    {"TimeGenerated": "2026-07-03T11:50:00Z", "Computer": "web-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 82.5},
+    {"TimeGenerated": "2026-07-03T11:15:00Z", "Computer": "web-02", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 70.0},
+    {"TimeGenerated": "2026-07-03T11:45:00Z", "Computer": "web-02", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 72.0},
+    {"TimeGenerated": "2026-07-03T11:20:00Z", "Computer": "db-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 50.0},
+    {"TimeGenerated": "2026-07-03T11:40:00Z", "Computer": "db-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 60.0},
+    {"TimeGenerated": "2026-07-03T11:25:00Z", "Computer": "app-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 20.0},
+    {"TimeGenerated": "2026-07-03T11:55:00Z", "Computer": "app-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 30.0},
+    {"TimeGenerated": "2026-07-03T09:05:00Z", "Computer": "app-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 99.0},
+    {"TimeGenerated": "2026-07-03T09:35:00Z", "Computer": "app-01", "ObjectName": "Processor", "CounterName": "% Processor Time", "CounterValue": 99.0},
+    {"TimeGenerated": "2026-07-03T11:35:00Z", "Computer": "db-01", "ObjectName": "Memory", "CounterName": "Available MBytes", "CounterValue": 4000.0},
+    {"TimeGenerated": "2026-07-03T11:36:00Z", "Computer": "web-01", "ObjectName": "Memory", "CounterName": "Available MBytes", "CounterValue": 2048.0}
+  ]
+}

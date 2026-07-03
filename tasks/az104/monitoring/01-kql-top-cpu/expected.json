@@ -1,0 +1,5 @@
+[
+  {"Computer": "web-01", "AvgCpu": 82.5},
+  {"Computer": "web-02", "AvgCpu": 71.0},
+  {"Computer": "db-01", "AvgCpu": 55.0}
+]
