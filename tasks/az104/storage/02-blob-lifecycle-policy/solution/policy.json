@@ -1,0 +1,24 @@
+{
+  "rules": [
+    {
+      "enabled": true,
+      "name": "tier-then-delete-logs",
+      "type": "Lifecycle",
+      "definition": {
+        "filters": {
+          "blobTypes": ["blockBlob"]
+        },
+        "actions": {
+          "baseBlob": {
+            "tierToCool": {
+              "daysAfterModificationGreaterThan": 30
+            },
+            "delete": {
+              "daysAfterModificationGreaterThan": 365
+            }
+          }
+        }
+      }
+    }
+  ]
+}

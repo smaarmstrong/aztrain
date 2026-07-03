@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a private blob container on a Cool-tier account",
+  "objective": "Create and configure a container in Azure Blob Storage",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "storage", "blob", "container"]
+}

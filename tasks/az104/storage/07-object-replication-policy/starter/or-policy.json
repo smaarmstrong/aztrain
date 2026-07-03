@@ -1,0 +1,5 @@
+{
+  "comment": "Replace this with an object replication policy. See the task prompt.",
+  "comment2": "https://learn.microsoft.com/azure/storage/blobs/object-replication-overview",
+  "rules": []
+}

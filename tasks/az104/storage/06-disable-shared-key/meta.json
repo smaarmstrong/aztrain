@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep that disables shared-key access, forcing Entra auth",
+  "objective": "Manage access keys",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "storage", "security", "entra"]
+}

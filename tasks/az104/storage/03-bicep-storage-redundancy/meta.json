@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a geo-zone-redundant (GZRS) storage account",
+  "objective": "Configure Azure Storage redundancy",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "storage", "redundancy"]
+}

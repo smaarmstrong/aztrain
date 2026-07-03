@@ -1,0 +1,9 @@
+{
+  "title": "Write an object replication policy from source to destination",
+  "objective": "Configure object replication",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["storage", "blob", "replication", "json"]
+}

@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for an Azure Files share with a quota",
+  "objective": "Create and configure a file share in Azure Files",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "storage", "files"]
+}
