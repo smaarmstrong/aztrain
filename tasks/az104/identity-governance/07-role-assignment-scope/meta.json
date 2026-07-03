@@ -1,0 +1,9 @@
+{
+  "title": "Grant a group the Reader role at resource-group scope (Bicep)",
+  "objective": "Assign roles at different scopes",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["rbac", "bicep", "role-assignment", "governance"]
+}

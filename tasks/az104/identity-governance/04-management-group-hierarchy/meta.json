@@ -1,0 +1,9 @@
+{
+  "title": "Declare a management group hierarchy with Bicep",
+  "objective": "Configure management groups",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["management-groups", "bicep", "governance"]
+}

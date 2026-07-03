@@ -1,0 +1,18 @@
+{
+  "Name": "VM Operator (on-call)",
+  "Description": "Start, restart, power off and monitor VMs. Cannot delete VMs or manage role assignments.",
+  "IsCustom": true,
+  "Actions": [
+    "Microsoft.Compute/virtualMachines/read",
+    "Microsoft.Compute/virtualMachines/start/action",
+    "Microsoft.Compute/virtualMachines/restart/action",
+    "Microsoft.Compute/virtualMachines/powerOff/action",
+    "Microsoft.Compute/virtualMachines/deallocate/action",
+    "Microsoft.Insights/metrics/read",
+    "Microsoft.Insights/alertRules/read"
+  ],
+  "NotActions": [],
+  "AssignableScopes": [
+    "/subscriptions/00000000-0000-0000-0000-000000000000"
+  ]
+}

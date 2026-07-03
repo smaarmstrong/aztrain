@@ -1,0 +1,12 @@
+{
+  "RoleAssignments": [
+    {"principalName": "Priya Nair",     "principalType": "User",           "roleDefinitionName": "Owner",       "scopeLevel": "Subscription",  "scope": "/subscriptions/1111"},
+    {"principalName": "Alan Turing",    "principalType": "User",           "roleDefinitionName": "Owner",       "scopeLevel": "Subscription",  "scope": "/subscriptions/1111"},
+    {"principalName": "platform-admins","principalType": "Group",          "roleDefinitionName": "Owner",       "scopeLevel": "Subscription",  "scope": "/subscriptions/1111"},
+    {"principalName": "Grace Hopper",   "principalType": "User",           "roleDefinitionName": "Contributor", "scopeLevel": "Subscription",  "scope": "/subscriptions/1111"},
+    {"principalName": "Dennis Ritchie", "principalType": "User",           "roleDefinitionName": "Owner",       "scopeLevel": "ResourceGroup", "scope": "/subscriptions/1111/resourceGroups/rg-app"},
+    {"principalName": "Ken Thompson",   "principalType": "User",           "roleDefinitionName": "Reader",      "scopeLevel": "Subscription",  "scope": "/subscriptions/1111"},
+    {"principalName": "backup-svc",     "principalType": "ServicePrincipal","roleDefinitionName": "Owner",      "scopeLevel": "Subscription",  "scope": "/subscriptions/1111"},
+    {"principalName": "Barbara Liskov", "principalType": "User",           "roleDefinitionName": "Owner",       "scopeLevel": "Resource",      "scope": "/subscriptions/1111/resourceGroups/rg-app/providers/Microsoft.Storage/storageAccounts/sa1"}
+  ]
+}

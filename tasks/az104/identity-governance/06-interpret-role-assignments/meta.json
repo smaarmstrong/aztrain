@@ -1,0 +1,9 @@
+{
+  "title": "Interpret role assignments: find the over-privileged users",
+  "objective": "Interpret access assignments",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["rbac", "kql", "governance", "least-privilege"]
+}

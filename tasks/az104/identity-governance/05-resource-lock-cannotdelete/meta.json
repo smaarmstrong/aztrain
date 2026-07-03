@@ -1,0 +1,9 @@
+{
+  "title": "Protect a storage account with a CanNotDelete lock (Bicep)",
+  "objective": "Configure resource locks",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["locks", "bicep", "governance"]
+}

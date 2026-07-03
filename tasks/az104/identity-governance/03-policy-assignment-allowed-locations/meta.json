@@ -1,0 +1,9 @@
+{
+  "title": "Assign the built-in 'Allowed locations' policy with Bicep",
+  "objective": "Implement and manage Azure Policy",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["policy", "bicep", "governance"]
+}
