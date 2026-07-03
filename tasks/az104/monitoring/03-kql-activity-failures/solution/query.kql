@@ -1,0 +1,7 @@
+AzureActivity
+| where TimeGenerated > ago(1h)
+| where Caller == "priya@contoso.com"
+| where ActivityStatusValue == "Failed"
+| where OperationNameValue has "compute"
+| project OperationNameValue, ResourceGroup
+| sort by OperationNameValue asc

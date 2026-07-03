@@ -1,0 +1,9 @@
+{
+  "title": "KQL: find a caller's failed Compute operations (where / has / case-sensitive ==)",
+  "objective": "Query and analyze logs in Azure Monitor",
+  "est_min": 12,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["kql", "monitoring"]
+}

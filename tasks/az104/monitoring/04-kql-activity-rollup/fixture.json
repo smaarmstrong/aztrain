@@ -1,0 +1,16 @@
+{
+  "@now": "2026-07-03T12:00:00Z",
+  "AzureActivity": [
+    {"TimeGenerated": "2026-07-03T11:02:00Z", "Caller": "priya@contoso.com", "ResourceGroup": "rg-prod", "ActivityStatusValue": "Success"},
+    {"TimeGenerated": "2026-07-03T11:06:00Z", "Caller": "priya@contoso.com", "ResourceGroup": "rg-prod", "ActivityStatusValue": "Failed"},
+    {"TimeGenerated": "2026-07-03T11:11:00Z", "Caller": "sam@contoso.com", "ResourceGroup": "rg-prod", "ActivityStatusValue": "Failed"},
+    {"TimeGenerated": "2026-07-03T11:15:00Z", "Caller": "sam@contoso.com", "ResourceGroup": "rg-prod", "ActivityStatusValue": "Success"},
+    {"TimeGenerated": "2026-07-03T11:19:00Z", "Caller": "automation@contoso.com", "ResourceGroup": "rg-prod", "ActivityStatusValue": "Success"},
+    {"TimeGenerated": "2026-07-03T11:23:00Z", "Caller": "priya@contoso.com", "ResourceGroup": "rg-net", "ActivityStatusValue": "Failed"},
+    {"TimeGenerated": "2026-07-03T11:28:00Z", "Caller": "priya@contoso.com", "ResourceGroup": "rg-net", "ActivityStatusValue": "Success"},
+    {"TimeGenerated": "2026-07-03T11:34:00Z", "Caller": "sam@contoso.com", "ResourceGroup": "rg-net", "ActivityStatusValue": "Failed"},
+    {"TimeGenerated": "2026-07-03T11:41:00Z", "Caller": "automation@contoso.com", "ResourceGroup": "rg-data", "ActivityStatusValue": "Success"},
+    {"TimeGenerated": "2026-07-03T11:48:00Z", "Caller": "automation@contoso.com", "ResourceGroup": "rg-data", "ActivityStatusValue": "Success"},
+    {"TimeGenerated": "2026-07-03T09:30:00Z", "Caller": "priya@contoso.com", "ResourceGroup": "rg-prod", "ActivityStatusValue": "Failed"}
+  ]
+}

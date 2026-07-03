@@ -1,0 +1,4 @@
+AzureActivity
+| where TimeGenerated > ago(1h)
+| summarize Total = count(), Failed = countif(ActivityStatusValue == "Failed"), Callers = dcount(Caller) by ResourceGroup
+| sort by Total desc, ResourceGroup asc

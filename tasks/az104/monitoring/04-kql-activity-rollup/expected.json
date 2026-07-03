@@ -1,0 +1,5 @@
+[
+  {"ResourceGroup": "rg-prod", "Total": 5, "Failed": 2, "Callers": 3},
+  {"ResourceGroup": "rg-net", "Total": 3, "Failed": 2, "Callers": 2},
+  {"ResourceGroup": "rg-data", "Total": 2, "Failed": 0, "Callers": 1}
+]

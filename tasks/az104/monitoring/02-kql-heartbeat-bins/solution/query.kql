@@ -1,0 +1,5 @@
+Heartbeat
+| where TimeGenerated > ago(4h)
+| summarize Beats = count() by Hour = bin(TimeGenerated, 1h)
+| project Hour = tostring(Hour), Beats
+| sort by Hour asc

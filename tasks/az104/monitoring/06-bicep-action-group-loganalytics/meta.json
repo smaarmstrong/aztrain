@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a Log Analytics workspace + email action group",
+  "objective": "Set up alert rules, action groups, and alert processing rules in Azure Monitor",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "monitoring", "loganalytics", "action-group"]
+}

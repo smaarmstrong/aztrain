@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a VM CPU > 80% metric alert",
+  "objective": "Set up alert rules, action groups, and alert processing rules in Azure Monitor",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "monitoring", "alerts"]
+}
