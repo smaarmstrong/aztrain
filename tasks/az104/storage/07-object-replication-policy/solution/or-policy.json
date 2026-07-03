@@ -1,0 +1,10 @@
+{
+  "sourceAccount": "default",
+  "destinationAccount": "default",
+  "rules": [
+    {
+      "sourceContainer": "uploads",
+      "destinationContainer": "uploads-replica"
+    }
+  ]
+}

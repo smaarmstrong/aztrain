@@ -1,0 +1,5 @@
+{
+  "comment": "Replace this with a lifecycle policy. See the task prompt.",
+  "comment2": "https://learn.microsoft.com/azure/storage/blobs/lifecycle-management-overview",
+  "rules": []
+}

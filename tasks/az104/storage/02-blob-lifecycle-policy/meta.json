@@ -1,0 +1,9 @@
+{
+  "title": "Write a blob lifecycle management policy that tiers then deletes",
+  "objective": "Configure blob lifecycle management",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["storage", "blob", "lifecycle", "json"]
+}
