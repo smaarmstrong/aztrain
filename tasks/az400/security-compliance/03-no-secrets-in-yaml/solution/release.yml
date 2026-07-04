@@ -1,0 +1,22 @@
+# release.yml — every secret now comes from GitHub encrypted secrets; nothing
+# sensitive is stored in the file.
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      STORAGE_CONN: ${{ secrets.STORAGE_CONN }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to registry
+        run: docker login ospprod.azurecr.io -u ci -p "$REGISTRY_PASSWORD"
+      - name: Publish package
+        run: npm publish --//registry.npmjs.org/:_authToken=$NPM_TOKEN

@@ -1,0 +1,9 @@
+{
+  "title": "Enable Dependabot dependency scanning",
+  "objective": "Automate analysis of vulnerabilities of open-source components by using Dependabot alerts",
+  "est_min": 10,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["github", "dependabot", "scanning", "yaml"]
+}

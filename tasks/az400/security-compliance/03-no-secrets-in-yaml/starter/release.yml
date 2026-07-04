@@ -1,0 +1,20 @@
+# release.yml — LEAKY: secrets are committed in plaintext. Externalize them.
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      STORAGE_CONN: "DefaultEndpointsProtocol=https;AccountName=ospprod;AccountKey=Zm9vYmFyYmF6cXV4MTIzNDU2Nzg5MFFXRVJUWXVpb3BBU0RGR0hKS0w9PQ==;EndpointSuffix=core.windows.net"
+      REGISTRY_PASSWORD: "P@ssw0rd-Registry-2026!"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to registry
+        run: docker login ospprod.azurecr.io -u ci -p "$REGISTRY_PASSWORD"
+      - name: Publish package
+        run: npm publish --//registry.npmjs.org/:_authToken=ghp_AbCdEf0123456789AbCdEf0123456789AbCd

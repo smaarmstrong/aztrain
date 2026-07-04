@@ -1,0 +1,4 @@
+# dependabot.yml — INCOMPLETE. Configure at least one ecosystem + schedule.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates
+version: 2
+updates: []

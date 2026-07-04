@@ -1,0 +1,9 @@
+{
+  "_comment": "Branch protection for main. This starter enforces nothing — fix it per the prompt.",
+  "required_status_checks": null,
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "allow_force_pushes": true,
+  "allow_deletions": true
+}

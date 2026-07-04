@@ -1,0 +1,9 @@
+{
+  "title": "Author an Azure Policy that denies unencrypted storage",
+  "objective": "Configure Microsoft Defender for Cloud DevOps Security",
+  "est_min": 20,
+  "difficulty": 4,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["azure-policy", "compliance", "encryption", "json"]
+}
