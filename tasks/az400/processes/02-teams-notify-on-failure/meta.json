@@ -1,0 +1,9 @@
+{
+  "title": "Notify Microsoft Teams on build failure",
+  "objective": "Configure integration between GitHub or Azure DevOps and Microsoft Teams",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["github-actions", "teams", "notifications"]
+}

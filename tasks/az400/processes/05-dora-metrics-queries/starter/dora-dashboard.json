@@ -1,0 +1,11 @@
+{
+  "_comment": "TODO: define a flow-of-work dashboard covering the four DORA metrics. Each entry in 'metrics' needs a title/key and a real query. Cover: lead time for changes, deployment frequency, change failure rate, and time to restore service.",
+  "dashboard": "DevOps Flow",
+  "metrics": [
+    {
+      "key": "deployment_frequency",
+      "title": "Deployment frequency",
+      "query": ""
+    }
+  ]
+}

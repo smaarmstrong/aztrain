@@ -1,0 +1,19 @@
+{
+  "publisherId": "tfs",
+  "eventType": "build.complete",
+  "resourceVersion": "1.0",
+  "consumerId": "webHooks",
+  "consumerActionId": "httpRequest",
+  "publisherInputs": {
+    "buildStatus": "Failed",
+    "definitionName": "",
+    "projectId": "$(System.TeamProjectId)"
+  },
+  "consumerInputs": {
+    "url": "https://hooks.example.com/services/ci-events",
+    "httpHeaders": "Authorization: Bearer $(WEBHOOK_TOKEN)",
+    "resourceDetailsToSend": "all",
+    "messagesToSend": "all",
+    "detailedMessagesToSend": "all"
+  }
+}

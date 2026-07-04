@@ -1,0 +1,20 @@
+# Wire up a Microsoft Teams failure notification.
+#
+# TODO: this pipeline builds, but the team never hears about red builds.
+# Add a notify job/step that posts to Microsoft Teams ONLY when the build
+# fails, using a webhook URL kept in a repository secret (never inline).
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: make build

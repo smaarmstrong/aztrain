@@ -1,0 +1,11 @@
+{
+  "_comment": "TODO: turn this into a working Azure DevOps service-hook subscription that POSTs build.complete events to an HTTPS webhook. Set consumerId/consumerActionId, the eventType, the https url, and reference any auth token via a $(VAR) instead of pasting it.",
+  "publisherId": "tfs",
+  "eventType": "",
+  "consumerId": "",
+  "consumerActionId": "",
+  "publisherInputs": {},
+  "consumerInputs": {
+    "url": "http://internal-host/hook"
+  }
+}

@@ -1,0 +1,18 @@
+# Enforce Azure Boards traceability on pull requests.
+#
+# TODO: this workflow runs on PRs but doesn't check anything. Make it fail the
+# PR unless the title or body references an Azure Boards work item using the
+# AB#<id> linking syntax (e.g. AB#1234).
+name: require-workitem-link
+
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  check-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        run: echo "TODO: enforce AB# link"

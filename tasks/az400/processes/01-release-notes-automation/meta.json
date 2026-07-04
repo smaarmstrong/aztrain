@@ -1,0 +1,9 @@
+{
+  "title": "Generate release notes from Git history on tag push",
+  "objective": "Automate creation of documentation from Git history",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["github-actions", "release-notes", "documentation"]
+}

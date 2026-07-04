@@ -1,0 +1,30 @@
+name: require-workitem-link
+
+# Enforce Azure Boards traceability: every PR must reference a work item using
+# the AB#<id> linking syntax so the commit/PR is traceable back to the board.
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: read
+
+jobs:
+  check-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require an AB# work-item reference
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if echo "$TITLE $BODY" | grep -Eq 'AB#[0-9]+'; then
+            echo "Found an Azure Boards work-item link."
+          else
+            echo "::error::PR must reference an Azure Boards work item as AB#<id>."
+            exit 1
+          fi
