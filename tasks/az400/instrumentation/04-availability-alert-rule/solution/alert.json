@@ -1,0 +1,36 @@
+{
+  "type": "Microsoft.Insights/metricAlerts",
+  "apiVersion": "2018-03-01",
+  "name": "checkout-failed-requests",
+  "location": "global",
+  "properties": {
+    "description": "Fire when the checkout service returns more than 10 failed requests in 5 minutes.",
+    "severity": 1,
+    "enabled": true,
+    "scopes": [
+      "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]"
+    ],
+    "evaluationFrequency": "PT1M",
+    "windowSize": "PT5M",
+    "criteria": {
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+      "allOf": [
+        {
+          "name": "FailedRequests",
+          "metricNamespace": "microsoft.insights/components",
+          "metricName": "requests/failed",
+          "operator": "GreaterThan",
+          "threshold": 10,
+          "timeAggregation": "Total",
+          "criterionType": "StaticThresholdCriterion"
+        }
+      ]
+    },
+    "autoMitigate": true,
+    "actions": [
+      {
+        "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', parameters('actionGroupName'))]"
+      }
+    ]
+  }
+}

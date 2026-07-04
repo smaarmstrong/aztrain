@@ -1,0 +1,9 @@
+{
+  "title": "Author a metric alert rule for a spike in failed requests",
+  "objective": "Configure alerts for events in GitHub Actions and Azure Pipelines",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["instrumentation", "azure-monitor", "alerts", "app-insights"]
+}

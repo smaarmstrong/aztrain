@@ -1,0 +1,13 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Distributed tracing\nTODO: add query tiles that inspect dependency telemetry and correlate traces."
+      },
+      "name": "title"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

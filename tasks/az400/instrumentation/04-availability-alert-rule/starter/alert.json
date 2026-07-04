@@ -1,0 +1,16 @@
+{
+  "type": "Microsoft.Insights/metricAlerts",
+  "apiVersion": "2018-03-01",
+  "name": "checkout-failed-requests",
+  "location": "global",
+  "properties": {
+    "description": "TODO: fire when failed requests exceed a threshold over 5 minutes.",
+    "enabled": true,
+    "scopes": [],
+    "criteria": {
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+      "allOf": []
+    },
+    "actions": []
+  }
+}

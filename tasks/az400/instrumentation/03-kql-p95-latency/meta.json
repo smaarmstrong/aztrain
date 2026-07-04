@@ -1,0 +1,9 @@
+{
+  "title": "KQL: find operations breaching the latency SLO in the last hour",
+  "objective": "Analyze metrics by using collected telemetry, including usage and application performance",
+  "est_min": 12,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["kql", "instrumentation", "slo", "app-insights"]
+}

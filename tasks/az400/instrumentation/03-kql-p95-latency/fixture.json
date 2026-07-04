@@ -1,0 +1,15 @@
+{
+  "@now": "2026-07-03T12:00:00Z",
+  "AppRequests": [
+    {"TimeGenerated": "2026-07-03T11:02:00Z", "Name": "GET /api/orders", "OperationName": "GET Orders", "Success": true, "ResultCode": "200", "DurationMs": 100.0},
+    {"TimeGenerated": "2026-07-03T11:07:00Z", "Name": "GET /api/orders", "OperationName": "GET Orders", "Success": true, "ResultCode": "200", "DurationMs": 200.0},
+    {"TimeGenerated": "2026-07-03T11:12:00Z", "Name": "GET /api/orders", "OperationName": "GET Orders", "Success": true, "ResultCode": "200", "DurationMs": 300.0},
+    {"TimeGenerated": "2026-07-03T11:17:00Z", "Name": "GET /api/orders", "OperationName": "GET Orders", "Success": true, "ResultCode": "200", "DurationMs": 900.0},
+    {"TimeGenerated": "2026-07-03T11:22:00Z", "Name": "POST /api/checkout", "OperationName": "POST Checkout", "Success": true, "ResultCode": "200", "DurationMs": 1200.0},
+    {"TimeGenerated": "2026-07-03T11:27:00Z", "Name": "POST /api/checkout", "OperationName": "POST Checkout", "Success": true, "ResultCode": "200", "DurationMs": 1400.0},
+    {"TimeGenerated": "2026-07-03T11:32:00Z", "Name": "POST /api/checkout", "OperationName": "POST Checkout", "Success": true, "ResultCode": "200", "DurationMs": 400.0},
+    {"TimeGenerated": "2026-07-03T11:37:00Z", "Name": "GET /api/health", "OperationName": "GET Health", "Success": true, "ResultCode": "200", "DurationMs": 5.0},
+    {"TimeGenerated": "2026-07-03T11:42:00Z", "Name": "GET /api/health", "OperationName": "GET Health", "Success": true, "ResultCode": "200", "DurationMs": 7.0},
+    {"TimeGenerated": "2026-07-03T09:15:00Z", "Name": "POST /api/checkout", "OperationName": "POST Checkout", "Success": true, "ResultCode": "200", "DurationMs": 9000.0}
+  ]
+}
