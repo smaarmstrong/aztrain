@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a workspace-based Application Insights component",
+  "objective": "Configure collection of telemetry by using Azure Monitor Application Insights, Azure VM Insights, Azure Container Insights, Azure Monitor for Storage, and Azure Monitor for Networks",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "instrumentation", "app-insights", "azure-monitor"]
+}

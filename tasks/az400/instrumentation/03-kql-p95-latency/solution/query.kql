@@ -1,0 +1,5 @@
+AppRequests
+| where TimeGenerated > ago(1h)
+| summarize SlowCount = countif(DurationMs > 500), MaxDurationMs = max(DurationMs) by OperationName
+| where SlowCount > 0
+| sort by SlowCount desc

@@ -1,0 +1,39 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Distributed tracing — dependency latency & failures\nThis workbook inspects end-to-end traces flowing through the service using Application Insights dependency telemetry."
+      },
+      "name": "title"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppDependencies\n| where TimeGenerated > ago(1h)\n| summarize AvgDurationMs = avg(DurationMs), FailedCount = countif(Success == false) by Target, Type\n| sort by AvgDurationMs desc",
+        "size": 0,
+        "title": "Slowest dependencies (last hour)",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "dependency-latency"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppRequests\n| where TimeGenerated > ago(1h)\n| join kind=inner (AppDependencies) on OperationId\n| project TimeGenerated, OperationId, Name, Target, DurationMs",
+        "size": 0,
+        "title": "End-to-end traces by operation",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "trace-map"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

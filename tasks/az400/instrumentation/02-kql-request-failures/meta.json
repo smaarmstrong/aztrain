@@ -1,0 +1,9 @@
+{
+  "title": "KQL: count failed requests by operation in the last hour",
+  "objective": "Interrogate logs using basic Kusto Query Language (KQL) queries",
+  "est_min": 10,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["kql", "instrumentation", "app-insights"]
+}

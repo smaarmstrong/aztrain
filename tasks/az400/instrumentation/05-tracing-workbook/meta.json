@@ -1,0 +1,9 @@
+{
+  "title": "Build an Azure Monitor workbook for distributed tracing",
+  "objective": "Inspect distributed tracing by using Azure Monitor Application Insights",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["instrumentation", "workbook", "distributed-tracing", "app-insights"]
+}
