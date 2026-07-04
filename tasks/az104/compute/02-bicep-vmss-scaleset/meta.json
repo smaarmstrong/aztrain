@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a Virtual Machine Scale Set",
+  "objective": "Deploy and configure an Azure Virtual Machine Scale Sets",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "compute", "vmss"]
+}

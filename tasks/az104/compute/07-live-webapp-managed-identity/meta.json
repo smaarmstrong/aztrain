@@ -1,0 +1,9 @@
+{
+  "title": "Enable a system-assigned managed identity on a web app",
+  "objective": "Create an App Service",
+  "est_min": 10,
+  "difficulty": 2,
+  "kind": "live",
+  "est_cost": "free",
+  "tags": ["compute", "appservice", "identity", "managed-identity"]
+}

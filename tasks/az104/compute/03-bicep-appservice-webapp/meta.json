@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a Linux App Service plan and HTTPS-only web app",
+  "objective": "Create an App Service",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "compute", "appservice"]
+}

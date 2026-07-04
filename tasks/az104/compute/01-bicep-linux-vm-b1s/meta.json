@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a cheap, key-only Linux VM",
+  "objective": "Create a virtual machine",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "compute", "vm"]
+}

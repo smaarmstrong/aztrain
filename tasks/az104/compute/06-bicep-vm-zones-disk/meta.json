@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a zonal VM with a managed data disk",
+  "objective": "Deploy virtual machines to availability zones and availability sets",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "compute", "vm", "zones", "disks"]
+}

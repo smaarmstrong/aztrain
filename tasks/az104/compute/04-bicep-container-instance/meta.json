@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a public Azure Container Instance",
+  "objective": "Provision a container by using Azure Container Instances",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "compute", "containers", "aci"]
+}
