@@ -1,0 +1,9 @@
+{
+  "title": "Fetch a deploy secret from Key Vault at pipeline time",
+  "objective": "Implement and manage secrets and secretless authentication (for example, workload identity federation/OpenID Connect) in GitHub Actions and Azure Pipelines",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["github-actions", "keyvault", "oidc", "secrets"]
+}

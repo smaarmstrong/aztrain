@@ -1,0 +1,9 @@
+{
+  "title": "Gate main behind review + a security status check",
+  "objective": "Design and implement permissions and roles in GitHub",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["github", "branch-protection", "policy", "json"]
+}

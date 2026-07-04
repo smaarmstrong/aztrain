@@ -1,0 +1,31 @@
+# deploy.yml — logs in with OIDC (no client secret) and reads the secret from
+# Key Vault at run time. Nothing sensitive is stored in the repo.
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure login (OIDC, no secret)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Fetch DB connection string from Key Vault
+        uses: azure/get-keyvault-secrets@v1
+        with:
+          keyvault: kv-prod-osp
+          secrets: db-connection
+      - name: Deploy
+        run: ./deploy.sh

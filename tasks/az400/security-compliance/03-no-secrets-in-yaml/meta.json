@@ -1,0 +1,9 @@
+{
+  "title": "Purge hardcoded secrets from a pipeline",
+  "objective": "Design pipelines to prevent leakage of sensitive information",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["github-actions", "secrets", "hygiene"]
+}

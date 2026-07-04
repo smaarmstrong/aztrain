@@ -1,0 +1,18 @@
+# deploy.yml — BROKEN: the secret is hardcoded and login uses no OIDC.
+# Rewrite it per the prompt: OIDC login (no client secret) + Key Vault fetch.
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DB_CONNECTION: "Server=tcp:prod.database.windows.net;User ID=admin;Password=Sup3rS3cret!Pa55;"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy
+        run: ./deploy.sh

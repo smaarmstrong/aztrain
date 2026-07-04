@@ -1,0 +1,38 @@
+{
+  "properties": {
+    "displayName": "Deny storage accounts without secure transfer (HTTPS)",
+    "description": "Blocks storage accounts unless supportsHttpsTrafficOnly is enabled. Part of the Defender for Cloud encryption baseline.",
+    "mode": "Indexed",
+    "metadata": {
+      "category": "Storage"
+    },
+    "parameters": {
+      "effect": {
+        "type": "String",
+        "defaultValue": "Deny",
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ]
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Storage/storageAccounts"
+          },
+          {
+            "field": "Microsoft.Storage/storageAccounts/supportsHttpsTrafficOnly",
+            "notEquals": "true"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]"
+      }
+    }
+  }
+}

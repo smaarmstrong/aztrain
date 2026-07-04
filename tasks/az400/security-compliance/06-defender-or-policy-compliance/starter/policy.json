@@ -1,0 +1,12 @@
+{
+  "//": "Custom Azure Policy: deny storage accounts without secure transfer.",
+  "//todo": "Fill in properties.policyRule (if/then) and the Deny effect per the prompt.",
+  "properties": {
+    "displayName": "",
+    "mode": "Indexed",
+    "policyRule": {
+      "if": {},
+      "then": {}
+    }
+  }
+}
