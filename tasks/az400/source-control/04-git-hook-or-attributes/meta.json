@@ -1,0 +1,9 @@
+{
+  "title": "Normalize line endings and route large binaries to LFS with .gitattributes",
+  "objective": "Design and implement a strategy for managing large files, including Git Large File Storage (LFS) and git-fat",
+  "est_min": 12,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["source-control", "gitattributes", "lfs"]
+}

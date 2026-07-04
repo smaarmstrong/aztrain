@@ -1,0 +1,11 @@
+# Normalize all text files to LF in the repository by default.
+* text=auto
+
+# Shell scripts must always be LF, whatever the OS.
+*.sh text eol=lf
+
+# Images are binary: never diff or touch their bytes.
+*.png binary
+
+# Large design assets live in Git LFS.
+*.psd filter=lfs diff=lfs merge=lfs -text

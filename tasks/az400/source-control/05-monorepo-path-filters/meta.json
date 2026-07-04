@@ -1,0 +1,9 @@
+{
+  "title": "Path-filter a monorepo CI trigger so only touched services build",
+  "objective": "Design a branch strategy, including trunk-based, feature branch, and release branch",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["source-control", "monorepo", "ci", "yaml"]
+}

@@ -1,0 +1,9 @@
+{
+  "title": "Write a CODEOWNERS file for review routing",
+  "objective": "Configure permissions in the source control repository",
+  "est_min": 10,
+  "difficulty": 1,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["source-control", "codeowners", "review"]
+}
