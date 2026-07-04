@@ -1,0 +1,9 @@
+{
+  "title": "Define a DORA flow-of-work metrics dashboard",
+  "objective": "Design and implement a dashboard, including flow of work, such as cycle times, time to recovery, and lead time",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["dashboard", "dora", "metrics"]
+}

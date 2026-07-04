@@ -1,0 +1,9 @@
+{
+  "title": "Enforce Azure Boards work-item links on GitHub PRs",
+  "objective": "Configure integration between Azure Boards and GitHub repositories",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["azure-boards", "github", "traceability"]
+}

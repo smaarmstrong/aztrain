@@ -1,0 +1,33 @@
+{
+  "dashboard": "DevOps Flow",
+  "metrics": [
+    {
+      "key": "lead_time",
+      "title": "Lead time for changes",
+      "unit": "hours",
+      "aggregation": "median",
+      "query": "Deployments | where Environment == 'prod' | extend LeadTimeHours = datetime_diff('hour', DeployedAt, FirstCommitAt) | summarize percentile(LeadTimeHours, 50) by bin(DeployedAt, 1d)"
+    },
+    {
+      "key": "deployment_frequency",
+      "title": "Deployment frequency",
+      "unit": "per_day",
+      "aggregation": "count",
+      "query": "Deployments | where Environment == 'prod' and Status == 'succeeded' | summarize Deploys = count() by bin(DeployedAt, 1d)"
+    },
+    {
+      "key": "change_failure_rate",
+      "title": "Change failure rate",
+      "unit": "percent",
+      "aggregation": "ratio",
+      "query": "Deployments | where Environment == 'prod' | summarize Failed = countif(CausedIncident == true), Total = count() by bin(DeployedAt, 1d) | extend FailureRate = 100.0 * Failed / Total"
+    },
+    {
+      "key": "time_to_restore",
+      "title": "Time to restore service",
+      "unit": "hours",
+      "aggregation": "median",
+      "query": "Incidents | extend RestoreHours = datetime_diff('hour', ResolvedAt, DetectedAt) | summarize percentile(RestoreHours, 50) by bin(DetectedAt, 1d)"
+    }
+  ]
+}

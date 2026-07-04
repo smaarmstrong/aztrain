@@ -1,0 +1,9 @@
+{
+  "title": "Configure an Azure DevOps service-hook webhook subscription",
+  "objective": "Configure integration by using webhooks",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["azure-devops", "webhooks", "integration"]
+}
