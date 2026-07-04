@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep to peer two virtual networks",
+  "objective": "Create and configure virtual network peering",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "networking", "peering"]
+}

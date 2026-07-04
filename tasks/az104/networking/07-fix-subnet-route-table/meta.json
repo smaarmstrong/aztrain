@@ -1,0 +1,9 @@
+{
+  "title": "Fix the black-holed subnet by repairing its user-defined route",
+  "objective": "Configure user-defined routes",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "live",
+  "est_cost": "free",
+  "tags": ["networking", "udr", "route-table"]
+}

@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a public Standard Load Balancer",
+  "objective": "Configure an internal or public load balancer",
+  "est_min": 25,
+  "difficulty": 4,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "networking", "load-balancer"]
+}
