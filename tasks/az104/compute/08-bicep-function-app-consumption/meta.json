@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a serverless (Consumption) Function App",
+  "objective": "Deploy resources by using an Azure Resource Manager template or a Bicep file",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "compute", "functions", "serverless"]
+}
