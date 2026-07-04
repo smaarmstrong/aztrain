@@ -1,0 +1,9 @@
+{
+  "title": "Extract pipeline steps into a reusable YAML template",
+  "objective": "Create reusable pipeline elements, including YAML templates, task groups, variables, and variable groups",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "azure-pipelines", "templates"]
+}

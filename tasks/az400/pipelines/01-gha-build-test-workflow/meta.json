@@ -1,0 +1,9 @@
+{
+  "title": "Author a GitHub Actions CI workflow triggered on push and PR",
+  "objective": "Develop and implement pipeline trigger rules",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "github-actions", "ci"]
+}

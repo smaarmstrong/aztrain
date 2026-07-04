@@ -1,0 +1,22 @@
+# Deploy workflow — uses the OLD stored-credential style. Convert it to
+# passwordless OIDC: add permissions.id-token: write and log in with
+# federation (client-id/tenant-id/subscription-id), dropping the creds blob.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+# TODO: grant id-token: write so GitHub can mint the OIDC token
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          # TODO: replace this stored-credential login with OIDC federation
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - run: az group list -o table

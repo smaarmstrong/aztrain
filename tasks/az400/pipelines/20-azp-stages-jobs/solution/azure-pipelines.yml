@@ -1,0 +1,28 @@
+# azure-pipelines.yml — a multi-stage Build -> Deploy pipeline.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Build
+    displayName: Build the app
+    jobs:
+      - job: BuildJob
+        steps:
+          - script: dotnet build --configuration Release
+            displayName: Compile
+          - script: dotnet publish --output "$(Build.ArtifactStagingDirectory)"
+            displayName: Publish artifact
+
+  - stage: Deploy
+    displayName: Deploy the app
+    dependsOn: Build
+    jobs:
+      - job: DeployJob
+        steps:
+          - script: echo "Deploying the published artifact"
+            displayName: Deploy

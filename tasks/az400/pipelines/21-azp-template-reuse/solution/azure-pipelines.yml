@@ -1,0 +1,15 @@
+# azure-pipelines.yml — references the reusable build-job template.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: Build
+    steps:
+      - template: templates/build-job.yml
+        parameters:
+          buildConfiguration: Release

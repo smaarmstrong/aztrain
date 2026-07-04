@@ -1,0 +1,20 @@
+# azure-pipelines.yml — Deploy uses a plain job, bypassing environment gates.
+# Docs: https://learn.microsoft.com/azure/devops/pipelines/process/deployment-jobs
+#
+# TODO: turn the plain job into a `deployment:` job that targets an
+# `environment: production` and uses a `strategy: runOnce`.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Deploy
+    jobs:
+      - job: DeployJob
+        steps:
+          - script: echo "Deploying to production"
+            displayName: Deploy

@@ -1,0 +1,9 @@
+{
+  "title": "Deploy via a deployment job targeting a YAML environment",
+  "objective": "Design and implement checks and approvals by using YAML-based environments",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "azure-pipelines", "environments"]
+}

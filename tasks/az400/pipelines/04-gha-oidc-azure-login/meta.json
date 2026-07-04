@@ -1,0 +1,9 @@
+{
+  "title": "Deploy to Azure from GitHub Actions with OIDC (no stored secret)",
+  "objective": "Select a deployment automation solution, including GitHub Actions and Azure Pipelines",
+  "est_min": 20,
+  "difficulty": 4,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "github-actions", "oidc", "azure-login"]
+}

@@ -1,0 +1,24 @@
+# azure-pipelines.yml — deploys all at once (runOnce). See the prompt.
+# Docs: https://learn.microsoft.com/azure/devops/pipelines/process/deployment-jobs
+#
+# TODO: change the strategy from runOnce to a canary strategy with
+# increments: and a deploy.steps: block.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Deploy
+    jobs:
+      - deployment: DeployProd
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "Deploying to production"
+                  displayName: Deploy

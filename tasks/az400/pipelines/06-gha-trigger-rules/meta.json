@@ -1,0 +1,9 @@
+{
+  "title": "Control when a GitHub Actions workflow runs with trigger rules",
+  "objective": "Develop and implement pipeline trigger rules",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "github-actions", "triggers"]
+}

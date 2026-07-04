@@ -1,0 +1,13 @@
+# This release workflow runs on every push. Narrow it: run on v* tags, on a
+# nightly schedule, on pushes to main that touch src/**, and on manual dispatch.
+name: release
+
+on:
+  push: {}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "releasing..."

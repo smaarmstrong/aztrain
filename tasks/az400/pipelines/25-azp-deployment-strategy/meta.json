@@ -1,0 +1,9 @@
+{
+  "title": "Roll out a deployment with a canary strategy",
+  "objective": "Design a deployment strategy, including blue-green, canary, ring, progressive exposure, feature flags, and A/B testing",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "azure-pipelines", "canary"]
+}

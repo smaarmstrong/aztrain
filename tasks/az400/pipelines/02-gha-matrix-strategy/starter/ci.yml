@@ -1,0 +1,18 @@
+# Matrix CI — INCOMPLETE. Turn this single-version, single-OS job into a
+# two-axis matrix (version x os) and drive runs-on + the setup step from it.
+name: ci
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # TODO: add strategy.matrix with a version axis (>=3 values) and an os axis
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci && npm test

@@ -1,0 +1,17 @@
+# azure-pipelines.yml — consumes a variable group plus pipeline variables.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - group: prod-settings
+  - name: buildConfiguration
+    value: Release
+
+steps:
+  - script: dotnet build --configuration $(buildConfiguration)
+    displayName: Build

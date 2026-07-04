@@ -1,0 +1,9 @@
+{
+  "title": "Speed up a GitHub Actions workflow with dependency caching",
+  "objective": "Optimize a pipeline for cost, time, performance, and reliability",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "github-actions", "caching", "performance"]
+}
