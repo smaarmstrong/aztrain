@@ -1,0 +1,11 @@
+# templates/build-job.yml — reusable, parameterised build+test steps.
+parameters:
+  - name: buildConfiguration
+    type: string
+    default: Release
+
+steps:
+  - script: dotnet build --configuration ${{ parameters.buildConfiguration }}
+    displayName: Build
+  - script: dotnet test --configuration ${{ parameters.buildConfiguration }}
+    displayName: Test

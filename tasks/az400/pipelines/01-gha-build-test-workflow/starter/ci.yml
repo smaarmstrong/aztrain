@@ -1,0 +1,15 @@
+# CI workflow — INCOMPLETE. Make it trigger on push AND pull_request to main,
+# and give the build job real steps (checkout, setup runtime, build, test).
+name: ci
+
+# TODO: trigger on push and pull_request, both scoped to the main branch
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # TODO: check out, set up a runtime, build, then test
+      - run: echo "nothing here yet"

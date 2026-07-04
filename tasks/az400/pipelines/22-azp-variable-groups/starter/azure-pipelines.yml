@@ -1,0 +1,16 @@
+# azure-pipelines.yml — variables not wired up yet. See the prompt.
+# Docs: https://learn.microsoft.com/azure/devops/pipelines/library/variable-groups
+#
+# TODO: switch variables: to the list form, add `- group: prod-settings`,
+# add a named pipeline variable, and reference a variable in a step via $(...).
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - script: dotnet build
+    displayName: Build

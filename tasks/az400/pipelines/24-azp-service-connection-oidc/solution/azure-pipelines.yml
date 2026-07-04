@@ -1,0 +1,21 @@
+# azure-pipelines.yml — authenticates through an OIDC service connection.
+# The AzureCLI@2 task uses the service connection named by azureSubscription;
+# workload identity federation mints a short-lived token, so no secret is
+# stored in this file.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: AzureCLI@2
+    displayName: Deploy to Azure
+    inputs:
+      azureSubscription: azure-prod-oidc
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az deployment group create --resource-group rg-prod --template-file main.bicep

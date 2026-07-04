@@ -1,0 +1,22 @@
+# azure-pipelines.yml — logs in with a hardcoded secret. Fix this. See the prompt.
+# Docs: https://learn.microsoft.com/azure/devops/pipelines/library/connect-to-azure
+#
+# TODO: remove the az login with the inline client secret and authenticate
+# through an OIDC service connection via AzureCLI@2's azureSubscription input.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: AzureCLI@2
+    displayName: Deploy to Azure
+    inputs:
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az login --service-principal -u 11111111-1111-1111-1111-111111111111 -p "S3cr3tP@ssw0rdValue" --tenant 22222222-2222-2222-2222-222222222222
+        az deployment group create --resource-group rg-prod --template-file main.bicep

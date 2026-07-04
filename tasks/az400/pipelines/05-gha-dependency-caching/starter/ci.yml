@@ -1,0 +1,17 @@
+# CI with no caching — every run re-downloads dependencies. Add an
+# actions/cache step (path + a key using hashFiles on the lockfile) so
+# unchanged dependencies are restored instead of re-fetched.
+name: ci
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # TODO: cache dependencies here (actions/cache with path + hashFiles key)
+      - run: npm ci
+      - run: npm run build

@@ -1,0 +1,9 @@
+{
+  "title": "Author a multi-stage Azure Pipeline (Build then Deploy)",
+  "objective": "Design and implement a strategy for job execution order, including parallelism and multi-stage pipelines",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "azure-pipelines", "multi-stage"]
+}

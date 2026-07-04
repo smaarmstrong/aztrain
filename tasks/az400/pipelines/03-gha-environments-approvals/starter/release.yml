@@ -1,0 +1,17 @@
+# Release workflow — INCOMPLETE. Add a deploy job that (a) needs the build job
+# and (b) targets the protected `production` environment for approvals.
+name: release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+
+  # TODO: add a `deploy` job here that `needs: build` and targets
+  # environment: production

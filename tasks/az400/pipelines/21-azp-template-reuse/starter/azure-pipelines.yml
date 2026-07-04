@@ -1,0 +1,21 @@
+# azure-pipelines.yml — build steps are inlined and copy-pasted. See the prompt.
+# Docs: https://learn.microsoft.com/azure/devops/pipelines/process/templates
+#
+# TODO: move these steps into templates/build-job.yml as a parameterised
+# steps template, then reference it here with `- template:` and pass
+# parameters.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: Build
+    steps:
+      - script: dotnet build --configuration Release
+        displayName: Build
+      - script: dotnet test --configuration Release
+        displayName: Test

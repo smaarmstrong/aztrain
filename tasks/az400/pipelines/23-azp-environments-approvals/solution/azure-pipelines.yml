@@ -1,0 +1,20 @@
+# azure-pipelines.yml — Deploy runs as a deployment job through an environment.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Deploy
+    jobs:
+      - deployment: DeployJob
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "Deploying to production"
+                  displayName: Deploy

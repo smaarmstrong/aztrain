@@ -1,0 +1,9 @@
+{
+  "title": "Gate a deploy job behind a GitHub environment and a build dependency",
+  "objective": "Design and implement checks and approvals by using YAML-based environments",
+  "est_min": 15,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["az400", "pipelines", "github-actions", "environments", "approvals"]
+}
