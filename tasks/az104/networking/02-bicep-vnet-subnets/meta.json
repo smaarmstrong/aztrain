@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a VNet with two subnets",
+  "objective": "Create and configure virtual networks and subnets",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "networking", "vnet"]
+}

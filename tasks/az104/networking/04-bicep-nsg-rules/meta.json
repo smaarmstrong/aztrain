@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for an NSG that allows HTTPS and denies HTTP",
+  "objective": "Create and configure network security groups (NSGs) and application security groups",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "networking", "nsg"]
+}

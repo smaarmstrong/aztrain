@@ -1,0 +1,9 @@
+{
+  "title": "Author Bicep for a private DNS zone with an A record and VNet link",
+  "objective": "Configure Azure DNS",
+  "est_min": 20,
+  "difficulty": 3,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["bicep", "networking", "dns"]
+}
