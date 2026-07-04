@@ -1,0 +1,5 @@
+# .gitattributes — line-ending and large-file policy. See prompt.md.
+# Format:  <pattern>   <attr> [<attr> ...]
+# Example: *.md   text
+
+# TODO: add rules for * , *.sh , *.png and *.psd (LFS)

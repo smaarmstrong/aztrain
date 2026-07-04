@@ -1,0 +1,4 @@
+# .gitignore — exclude secrets and build artefacts. See prompt.md.
+# One glob per line. Do NOT ignore the whole tree.
+
+# TODO: add patterns for *.env, *.pfx, node_modules/ and bin/

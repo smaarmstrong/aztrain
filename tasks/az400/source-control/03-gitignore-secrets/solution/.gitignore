@@ -1,0 +1,14 @@
+# Secrets — never commit these.
+*.env
+.env.*
+*.pfx
+*.pem
+*.key
+
+# Dependencies.
+node_modules/
+
+# Build output.
+bin/
+obj/
+dist/

@@ -1,0 +1,5 @@
+# CODEOWNERS — map path patterns to reviewers. See prompt.md.
+# Format:  <path-pattern>   <owner> [<owner> ...]
+# Example: *.js   @acme/frontend
+#
+# TODO: add a catch-all, /infra/, *.tf, and /docs/ rules.

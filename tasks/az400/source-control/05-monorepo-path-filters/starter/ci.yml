@@ -1,0 +1,12 @@
+# Monorepo CI — scope this to the API service on the trunk. See prompt.md.
+# Right now it builds everything on every push to every branch: too broad.
+name: monorepo-ci
+
+on: push
+
+jobs:
+  build-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build
+        run: make -C services/api build

@@ -1,0 +1,8 @@
+{
+  "_comment": "Replace this stub. Author a GitHub repository ruleset that protects the default branch. See prompt.md.",
+  "name": "protect-main",
+  "target": "branch",
+  "enforcement": "disabled",
+  "conditions": {},
+  "rules": []
+}

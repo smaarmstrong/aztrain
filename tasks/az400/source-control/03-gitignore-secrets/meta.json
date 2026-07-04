@@ -1,0 +1,9 @@
+{
+  "title": "Keep secrets and build junk out of the repo with .gitignore",
+  "objective": "Remove specific data from source control",
+  "est_min": 10,
+  "difficulty": 1,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["source-control", "gitignore", "secrets"]
+}

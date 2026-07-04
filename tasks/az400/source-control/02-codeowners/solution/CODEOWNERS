@@ -1,0 +1,11 @@
+# CODEOWNERS — auto-requests reviewers by path. Last matching rule wins.
+
+# Default owners for anything not matched below.
+*                       @acme/maintainers
+
+# Infrastructure code is owned by the platform team.
+/infra/                 @acme/platform
+*.tf                    @acme/platform
+
+# Documentation is owned by the docs guild.
+/docs/                  @acme/docs jane.writer@acme.example

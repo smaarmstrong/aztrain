@@ -1,0 +1,9 @@
+{
+  "title": "Author a branch protection ruleset for main",
+  "objective": "Design and implement a pull request workflow by using branch policies and branch protection rules",
+  "est_min": 15,
+  "difficulty": 2,
+  "kind": "local",
+  "est_cost": "free",
+  "tags": ["source-control", "branch-policy", "github", "json"]
+}
