@@ -52,18 +52,39 @@ git clone git@github.com:smaarmstrong/aztrain.git && cd aztrain
 
 ## The loop
 
+New to Azure? Don't pick tasks — let it drive:
+
+```sh
+./aztrain learn               # teach the next task like a tutor, then hand off
+# ... do the job ...          # (or `make learn` — thin Makefile wrappers exist)
+./aztrain check               # grade the task you're on (no id needed)
+./aztrain train               # once you know the ropes: auto-pick the next task
+```
+
+`train` picks a spaced-repetition review when one's due, otherwise the next new
+task in a fundamentals-first teaching order (subscription setup → storage →
+compute → networking → identity/governance → monitoring, then the AZ-400 track).
+`learn` reads an optional per-task `learn.md` and walks you through it. Both
+respect the same Azure safety rail: **local Bicep/KQL** blocks may run in the
+lesson, but any command that authenticates, provisions, or costs money is only
+*shown* — you run those yourself under your own `az login`. `train` **presents**
+cloud tasks but never provisions them; you `start` those explicitly.
+
+The full command surface (drive any task by id):
+
 ```sh
 ./aztrain list                # tasks by track/domain, with your status
 ./aztrain start <id>          # provision (live) / scaffold, show the spec
 # ... do the job: edit workspace files, or drive az against the task's RG ...
-./aztrain check <id>          # grade the end state; XP + streak on first pass
-./aztrain solution <id>       # a reference answer (any correct one passes)
+./aztrain check [id]          # grade the end state; XP + streak on first pass
+./aztrain solution [id]       # a reference answer (any correct one passes)
 ./aztrain teardown <id|--all> # destroy rg-aztrain-* groups when done
 ./aztrain status              # XP, streak, per-domain progress bars
 ```
 
 `<id>` is `az104/networking/01-nsg-allow-https` or just a unique
-`01-nsg-allow-https` / `nsg-allow-https`.
+`01-nsg-allow-https` / `nsg-allow-https`; `check`/`solution`/`reset` default to
+the task `train`/`start` gave you.
 
 ## Selftest
 

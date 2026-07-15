@@ -8,15 +8,23 @@ for live tasks — fix real Azure state in a disposable resource group, graded b
 read-only `az` queries on the END STATE (any correct fix passes).
 
 Usage:
+    aztrain learn [id]             # teach the next new task like a tutor, then hand off
+    aztrain train                  # auto-pick what to do next (a review, or new material)
     aztrain list [track|domain]    # all tasks, grouped, with your status
     aztrain start  <id>            # set up the task (live: provisions its RG) and show the spec
-    aztrain check  <id>            # grade it (live: read-only az queries)
-    aztrain solution <id>          # reveal the reference solution
-    aztrain reset  <id>            # restore the starter scaffold (your work is backed up)
+    aztrain check  [id]            # grade it (defaults to the task you're on)
+    aztrain solution [id]          # reveal the reference solution (defaults to current)
+    aztrain reset  [id]            # restore the starter scaffold (defaults to current)
     aztrain status                 # XP, streak, per-domain completion
     aztrain teardown <id>|--all    # delete rg-aztrain-* resource groups (the ONLY destroyer)
 
-<id> is "track/domain/nn-name" or any unique trailing "nn-name" / "name".
+New to Azure?  Run `aztrain learn` — it explains the concept behind the next
+task, then sets it up so you can try it. Once you know the ropes, `aztrain
+train` just picks what to practise next (new material in a fundamentals-first
+order, or a spaced-repetition review) so you don't have to decide.
+
+<id> is "track/domain/nn-name" or any unique trailing "nn-name" / "name". For
+check/solution/reset you can omit it to act on the task train/start gave you.
 
 SAFETY RAILS
     * Cloud-touching tasks (kind "whatif"/"live") refuse to run unless the active
@@ -53,6 +61,15 @@ LOCATION = os.environ.get("AZTRAIN_LOCATION", "uksouth")
 MIN_PY = (3, 11)
 GUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
 
+# How the learner invoked us, so hints name a command they can actually run.
+# SELF is the runnable path (e.g. ./aztrain) — used for hints that take an <id>
+# (start/reset/teardown/solution <id>). INVOKE is what to suggest for the plain
+# verbs: `make <verb>` when run under make (MAKELEVEL is set), else the same
+# path. Only the parameterless verbs have make targets, so id-bearing hints
+# always use SELF — no hint ever names a command the learner can't run.
+SELF = sys.argv[0] or "./aztrain"
+INVOKE = "make" if os.environ.get("MAKELEVEL") else SELF
+
 # ---- colours ---------------------------------------------------------------
 _tty = sys.stdout.isatty()
 def c(code, s):
@@ -72,9 +89,13 @@ COSTS = ("free", "pennies", "paid")
 # ---- state -----------------------------------------------------------------
 def load_state():
     try:
-        return json.loads(STATE.read_text())
+        st = json.loads(STATE.read_text())
     except (FileNotFoundError, json.JSONDecodeError):
-        return {"tasks": {}, "xp": 0, "streak": {"count": 0, "last": ""}}
+        st = {"tasks": {}, "xp": 0, "streak": {"count": 0, "last": ""}}
+    # Fields added by train/learn; backfill so older progress files still load.
+    st.setdefault("current", None)
+    st.setdefault("recent_picks", [])
+    return st
 
 def save_state(st):
     STATE.parent.mkdir(parents=True, exist_ok=True)
@@ -90,6 +111,32 @@ def bump_streak(st):
     else:
         s["count"] = 1
     s["last"] = today.isoformat()
+
+# ---- spaced repetition -----------------------------------------------------
+# Days until the next review, indexed by how many times you've passed the task.
+# After the table runs out we keep roughly doubling. Same ladder as the redhat
+# and pytrain trainers: quick early reinforcement, then widening gaps.
+REVIEW_INTERVALS = [1, 3, 7, 16, 35, 75]
+
+def review_interval(reps):
+    """Days until the next review after `reps` successful passes (reps >= 1)."""
+    i = max(reps, 1) - 1
+    if i < len(REVIEW_INTERVALS):
+        return REVIEW_INTERVALS[i]
+    return REVIEW_INTERVALS[-1] * (2 ** (i - len(REVIEW_INTERVALS) + 1))
+
+def days_overdue(iso_due):
+    """How many days past its review date a task is (>=0 means due now).
+    None if it has no scheduled review yet."""
+    if not iso_due:
+        return None
+    return date.today().toordinal() - date.fromisoformat(iso_due).toordinal()
+
+def schedule_review(entry, reps):
+    """Record the next review date `review_interval(reps)` days out."""
+    entry["reps"] = reps
+    due = date.fromordinal(date.today().toordinal() + review_interval(reps))
+    entry["due"] = due.isoformat()
 
 # ---- task discovery --------------------------------------------------------
 def discover():
@@ -173,7 +220,7 @@ def guard_cloud(tid, meta):
     pin = pinned_sub()
     if not pin:
         die(f"no pinned training subscription in {PIN_FILE}\n"
-            f"       complete the setup task first:  aztrain start setup/00-subscription-safety")
+            f"       complete the setup task first:  {SELF} start setup/00-subscription-safety")
     active = active_sub()
     if not active:
         die("not logged in to az (or no default subscription) — run: az login")
@@ -287,7 +334,145 @@ def badge(meta):
     col = {"free": GRN, "pennies": YEL, "paid": RED}.get(cost, YEL)
     return col(f"[{kind}·{cost}]")
 
+# ---- what to teach next ----------------------------------------------------
+# Teaching order for NEW material: gentle fundamentals first, then things that
+# build on them, the DevOps (AZ-400) track last. Keyed by a task's domain dir
+# (the id minus its leaf, e.g. "az104/storage"); anything unlisted sorts after
+# these. Within a domain the nn- prefix already runs easy->hard, so
+# (domain rank, id) is the full teaching order.
+#
+# This is deliberately NOT the exam-blueprint order in docs/objectives.md —
+# that mirrors the certification's weighting, not teaching difficulty. A near-
+# beginner should meet the material in the order that keeps each step leaning
+# only on earlier ones:
+#   setup       pin a safe subscription — literally do this first
+#   az104/storage    your first resource + Bicep basics (one resource, no wiring)
+#   az104/compute    VMs / apps / containers — more resource types, same shape
+#   az104/networking VNets / NSGs / peering — wiring resources together
+#   az104/identity-governance  RBAC / policy / locks — govern what you can build
+#   az104/monitoring KQL / alerts — observe what you built
+# then the AZ-400 DevOps track, which assumes you can already describe resources:
+#   source-control -> pipelines -> security-compliance -> instrumentation -> processes
+DOMAIN_ORDER = {
+    "setup": 0,
+    "az104/storage": 1, "az104/compute": 2, "az104/networking": 3,
+    "az104/identity-governance": 4, "az104/monitoring": 5,
+    "az400/source-control": 6, "az400/pipelines": 7,
+    "az400/security-compliance": 8, "az400/instrumentation": 9,
+    "az400/processes": 10,
+}
+
+def curriculum_key(tid):
+    """Sort key placing a task in teaching order: (domain rank, then its id)."""
+    return (DOMAIN_ORDER.get(domain_of(tid), 99), tid)
+
+def is_done(st, tid):
+    return bool(st["tasks"].get(tid, {}).get("passed"))
+
+def cloud_ready():
+    """True if the pinned training subscription is the active one — i.e. cloud
+    tasks could actually run. Computed once (it calls az) and handed into the
+    pure selection functions so they stay testable and side-effect free."""
+    pin = pinned_sub()
+    if not pin:
+        return False
+    return (active_sub() or "").lower() == pin.lower()
+
+def selectable(meta, ready):
+    """Can autopilot pick this task right now? The subscription-setup bootstrap
+    is always surfaced (it's the on-ramp, and train only PRESENTS cloud tasks —
+    it never auto-provisions them). Local tasks always. A normal cloud task only
+    once the training subscription is active (like redhat gating on a spare
+    disk), so a learner who hasn't set Azure up still advances through the local
+    Bicep/KQL tasks. Never auto-select a `paid` task: the learner must opt into
+    cost explicitly with `aztrain start ... --i-am-paying`."""
+    if meta.get("bootstrap"):
+        return True
+    if meta.get("kind", "local") == "local":
+        return True
+    if meta.get("est_cost") == "paid":
+        return False
+    return ready
+
+def due_reviews(tasks, st, ready):
+    """Passed tasks whose review date has arrived, most overdue first. A passed
+    task with no schedule yet counts as due, so it re-enters the rotation.
+    Bootstrap tasks (subscription setup) are one-time — never reviewed."""
+    out = []
+    for tid, entry in st["tasks"].items():
+        if not entry.get("passed"):
+            continue
+        meta = tasks.get(tid)
+        if not meta or meta.get("bootstrap") or not selectable(meta, ready):
+            continue
+        overdue = days_overdue(entry.get("due"))
+        if overdue is None or overdue >= 0:
+            out.append((overdue if overdue is not None else 0, tid, meta))
+    out.sort(key=lambda x: -x[0])           # most overdue first
+    return [(tid, meta) for _, tid, meta in out]
+
+def next_new(tasks, st, ready):
+    """First not-yet-passed task in teaching order (fundamentals first). An
+    attempted-but-unpassed task counts as not-done, so this resumes work."""
+    for tid in sorted(tasks, key=curriculum_key):
+        if is_done(st, tid):
+            continue
+        if not selectable(tasks[tid], ready):
+            continue
+        return tid, tasks[tid]
+    return None
+
+def soonest_review(tasks, st):
+    """The nearest upcoming (not-yet-due) review, as (days_away, tid, meta)."""
+    best = None
+    for tid, entry in st["tasks"].items():
+        if not entry.get("passed"):
+            continue
+        meta = tasks.get(tid)
+        due = entry.get("due")
+        if not meta or meta.get("bootstrap") or not due:
+            continue
+        away = -days_overdue(due)
+        if away > 0 and (best is None or away < best[0]):
+            best = (away, tid, meta)
+    return best
+
+def choose_task(tasks, st, ready):
+    """Decide what to practise next. Pure — no side effects, so it's testable.
+    Returns (tid, meta, kind, reason). kind is 'review', 'new', or None.
+
+    Reviews take priority once due, but never more than two in a row while new
+    material is still waiting, so new content always keeps advancing."""
+    reviews = due_reviews(tasks, st, ready)
+    new = next_new(tasks, st, ready)
+    recent = st.get("recent_picks", [])
+    review_wall = len(recent) >= 2 and recent[-1] == "review" and recent[-2] == "review"
+
+    if reviews and not (review_wall and new):
+        (tid, meta), kind = reviews[0], "review"
+    elif new:
+        (tid, meta), kind = new, "new"
+    elif reviews:                       # only reviews left (all new material done)
+        (tid, meta), kind = reviews[0], "review"
+    else:
+        return None, None, None, ""
+
+    if kind == "review":
+        overdue = days_overdue(st["tasks"][tid].get("due"))
+        reason = "due for review" if not overdue else f"review — {overdue}d overdue"
+    elif st["tasks"].get(tid, {}).get("attempts"):
+        reason = "resume — started but not yet passed"
+    else:
+        reason = "new material, next in sequence"
+    return tid, meta, kind, reason
+
 # ---- commands ----------------------------------------------------------------
+def print_status_line(st):
+    done = sum(1 for t in st["tasks"].values() if t.get("passed"))
+    streak = st["streak"]["count"]
+    unit = "day" if streak == 1 else "days"
+    print(f"{BLD('XP')} {st['xp']}   {BLD('Streak')} {streak} {unit}   {BLD('Done')} {done}")
+
 def cmd_list(args):
     tasks = discover()
     st = load_state()
@@ -316,29 +501,13 @@ def cmd_list(args):
         done = sum(1 for t in tasks if st["tasks"].get(t, {}).get("passed"))
         print(f"\n{BLD(f'{done}/{total} tasks complete')} — "
               f"{st['xp']} XP, {st['streak']['count']}-day streak")
+        print(DIM("New to this?  ") + BLD(f"{INVOKE} learn")
+              + DIM("  teaches the next one first."))
+        print(DIM("Know it already?  ") + BLD(f"{INVOKE} train")
+              + DIM("  just picks what to practise."))
 
-def cmd_start(args):
-    flags = [a for a in args if a.startswith("--")]
-    args = [a for a in args if not a.startswith("--")]
-    if not args:
-        die("usage: aztrain start <id>")
-    tasks = discover()
-    tid = resolve(tasks, args[0])
-    meta = tasks[tid]
-    guard_paid(meta, flags)
-    guard_cloud(tid, meta)
-    if meta.get("kind") in ("whatif", "live"):
-        nag_leftovers()
-    ws = populate_workspace(tid, meta)
-    if (meta["_dir"] / "setup.sh").exists():
-        print(DIM(f"running setup for {tid} "
-                  + (f"(resource group {rg_for(tid)})..." if meta.get("kind") == "live" else "...")))
-        rc, out = run_task_script(tid, meta, "setup.sh")
-        invalidate_rg_cache()
-        if rc != 0:
-            print(out)
-            die(f"setup failed for {tid} — nothing to do until that's fixed "
-                f"(re-run start; teardown if it half-created things)")
+def show_spec(tid, meta, ws):
+    """Print a task's header, badge and prompt, plus its workspace / RG."""
     print(BLD(f"\n=== {meta['title']} ") + DIM(f"[{tid}]") + " " + badge(meta))
     print(DIM(f"difficulty {'★' * meta.get('difficulty', 1)} · ~{meta.get('est_min', '?')} min"
               f" · objective: {meta.get('objective', '?')}"))
@@ -347,46 +516,148 @@ def cmd_start(args):
     print(BLD("Your workspace: ") + str(ws.relative_to(REPO)) + "/")
     if meta.get("kind") == "live":
         print(BLD("Resource group: ") + rg_for(tid)
-              + DIM(f"  (destroy later with: aztrain teardown {leaf_of(tid)})"))
-    print(DIM(f"When ready:     aztrain check {tid}"))
+              + DIM(f"  (destroy later with: {SELF} teardown {leaf_of(tid)})"))
+
+def mark_current(st, tid):
+    """Record this as the task check/solution/reset default to, and note it's
+    started (attempts stays 0 until a real check) so train can 'resume' it."""
+    st["tasks"].setdefault(tid, {"passed": False, "attempts": 0})
+    st["current"] = tid
+    save_state(st)
+
+def launch_task(st, tid, meta, flags=(), provision=True):
+    """Set a task up and show its spec; mark it current. Shared by `start` and
+    (for local tasks) `train`. With provision=False the cloud-mutating setup.sh
+    is NOT run — used when `train` surfaces a cloud task, so the learner triggers
+    the billable provisioning themselves via `aztrain start`."""
+    kind = meta.get("kind", "local")
+    if provision:
+        guard_paid(meta, flags)
+        guard_cloud(tid, meta)
+        if kind in ("whatif", "live"):
+            nag_leftovers()
+    ws = populate_workspace(tid, meta)
+    if provision and (meta["_dir"] / "setup.sh").exists():
+        print(DIM(f"running setup for {tid} "
+                  + (f"(resource group {rg_for(tid)})..." if kind == "live" else "...")))
+        rc, out = run_task_script(tid, meta, "setup.sh")
+        invalidate_rg_cache()
+        if rc != 0:
+            print(out)
+            die(f"setup failed for {tid} — nothing to do until that's fixed "
+                f"(re-run start; teardown if it half-created things)")
+    show_spec(tid, meta, ws)
+    mark_current(st, tid)
+    if provision:
+        print(DIM("When ready:     ") + f"{INVOKE} check"
+              + DIM(f"   (or: {SELF} check {tid})"))
+    else:
+        print(YEL("\nThis task provisions real Azure resources, so aztrain won't "
+                  "do it automatically."))
+        print(DIM("Start it yourself when ready:  ") + f"{SELF} start {leaf_of(tid)}"
+              + DIM(f"  (creates {rg_for(tid)})"))
+        print(DIM("Then grade with:               ") + f"{INVOKE} check")
+
+def cmd_start(args):
+    flags = [a for a in args if a.startswith("--")]
+    args = [a for a in args if not a.startswith("--")]
+    if not args:
+        die(f"usage: {SELF} start <id>   (or just: {INVOKE} train)")
+    tasks = discover()
+    st = load_state()
+    tid = resolve(tasks, args[0])
+    launch_task(st, tid, tasks[tid], flags, provision=True)
+
+# ---- train: autopilot ------------------------------------------------------
+def cmd_train(args):
+    tasks = discover()
+    if not tasks:
+        print(DIM("no tasks found")); return
+    st = load_state()
+    ready = cloud_ready()
+    nag_leftovers()
+    tid, meta, kind, reason = choose_task(tasks, st, ready)
+    if tid is None:
+        print()
+        print(GRN(BLD("All caught up — nothing due and no new tasks.")))
+        nxt = soonest_review(tasks, st)
+        if nxt:
+            print(DIM(f"Next review ({nxt[2]['title']}) comes due in {nxt[0]}d."))
+        if not ready and any(m.get("kind") != "local" and not m.get("bootstrap")
+                             and not is_done(st, t) for t, m in tasks.items()):
+            print(DIM("Cloud tasks are waiting — activate your training subscription "
+                      "to unlock them:  ") + f"{SELF} start setup/00-subscription-safety")
+        print()
+        print_status_line(st)
+        return
+    st["recent_picks"] = (st.get("recent_picks", []) + [kind])[-4:]
+    save_state(st)
+    tag = YEL("REVIEW") if kind == "review" else GRN(" NEW  ")
+    print()
+    print_status_line(st)
+    print(f"{tag}  {DIM(reason)}")
+    # Local tasks are set up in full. Cloud tasks are only PRESENTED — the
+    # learner provisions them (their own az login, their own bill), never train.
+    if meta.get("kind", "local") == "local":
+        launch_task(st, tid, meta, provision=True)
+    else:
+        if kind == "review":
+            print(DIM("(a cloud review — re-provision it yourself when you want to redo it)"))
+        launch_task(st, tid, meta, provision=False)
 
 def cmd_check(args):
     flags = [a for a in args if a.startswith("--")]
     args = [a for a in args if not a.startswith("--")]
-    if not args:
-        die("usage: aztrain check <id>")
     tasks = discover()
-    tid = resolve(tasks, args[0])
+    st = load_state()
+    ident = args[0] if args else st.get("current")
+    if not ident:
+        die(f"nothing to check — run '{INVOKE} train' first, "
+            f"or name a task: {SELF} check <id>")
+    tid = resolve(tasks, ident)
     meta = tasks[tid]
     guard_paid(meta, flags)
     guard_cloud(tid, meta)
     passed, output = grade(tid, meta)
-    st = load_state()
     rec = st["tasks"].setdefault(tid, {"passed": False, "attempts": 0})
     rec["attempts"] += 1
     print(output)
     if passed:
+        was_review = rec.get("passed", False)
         print(GRN(BLD("PASS")) + f" — {meta['title']}")
-        if not rec["passed"]:
-            xp = XP_BY_DIFFICULTY.get(meta.get("difficulty", 1), 10)
-            st["xp"] += xp
-            bump_streak(st)
-            print(GRN(f"+{xp} XP") + DIM(f"  (total {st['xp']}, streak {st['streak']['count']})"))
+        if was_review:
+            reps, xp = rec.get("reps", 1) + 1, 5     # cheaper: you already knew it
+        else:
+            reps, xp = 1, XP_BY_DIFFICULTY.get(meta.get("difficulty", 1), 10)
         rec["passed"] = True
+        st["xp"] += xp
+        bump_streak(st)
+        print(GRN(f"+{xp} XP") + DIM(f"  (total {st['xp']}, streak {st['streak']['count']})"))
+        if not meta.get("bootstrap"):
+            schedule_review(rec, reps)
+            print(DIM(f"Next review in {review_interval(reps)}d.  Next task:  ")
+                  + f"{INVOKE} train")
         if meta.get("kind") == "live":
-            print(YEL(f"remember: aztrain teardown {leaf_of(tid)}  (the RG keeps existing until you do)"))
+            print(YEL(f"remember: {SELF} teardown {leaf_of(tid)}  "
+                      "(the RG keeps existing until you do)"))
     else:
+        if rec.get("passed"):        # a lapse — relearn from the start, soon
+            rec["reps"] = 0
+            rec["due"] = date.today().isoformat()
         print(RED(BLD("FAIL")) + f" — {meta['title']}")
-        print(DIM(f"Hint: aztrain solution {tid} shows a reference answer."))
+        print(DIM("Fix it and re-run  ") + f"{INVOKE} check"
+              + DIM(f"   (stuck?  {SELF} solution {tid})"))
     save_state(st)
     if not passed:
         sys.exit(1)
 
 def cmd_solution(args):
-    if not args:
-        die("usage: aztrain solution <id>")
     tasks = discover()
-    tid = resolve(tasks, args[0])
+    st = load_state()
+    ident = args[0] if args else st.get("current")
+    if not ident:
+        die(f"nothing to show — name a task: {SELF} solution <id>")
+    tid = resolve(tasks, ident)
     meta = tasks[tid]
     print(BLD(f"Reference solution — {meta['title']}\n"))
     sol_dir = meta["_dir"] / "solution"
@@ -401,10 +672,12 @@ def cmd_solution(args):
         die(f"task {tid} ships no solution — the task is broken, please report it")
 
 def cmd_reset(args):
-    if not args:
-        die("usage: aztrain reset <id>")
     tasks = discover()
-    tid = resolve(tasks, args[0])
+    st = load_state()
+    ident = args[0] if args else st.get("current")
+    if not ident:
+        die(f"nothing to reset — name a task: {SELF} reset <id>")
+    tid = resolve(tasks, ident)
     populate_workspace(tid, tasks[tid], force=True)
     print(f"workspace for {tid} reset to the starter scaffold")
 
@@ -467,7 +740,196 @@ def cmd_teardown(args):
     invalidate_rg_cache()
     print(DIM("deletions run in the background; re-run `aztrain status` later to confirm"))
 
+# ---- learn: an interactive tutor -------------------------------------------
+def ask(msg):
+    """Prompt the learner; treat a closed stdin (piped/non-interactive) as Enter."""
+    try:
+        return input(msg).strip().lower()
+    except EOFError:
+        print()
+        return ""
+
+def parse_lesson(text):
+    """Split a lesson into a sequence of beats the tutor walks through:
+        ('prose', text)         a chunk of the lecture, printed as-is
+        ('pause', None)         a `---` line — wait for the learner
+        ('run',  (tag, lines))  a fenced command block to try
+    A lesson with none of these markers is one prose beat.
+
+    Three run fences are recognised. ```run is a step the tutor MAY run for the
+    learner (only if it classifies as local & read-only — see block_is_cloud);
+    ```run-manual and ```az are ALWAYS present-only, for commands the learner
+    must run themselves. Lines are captured VERBATIM (indentation/blanks kept)
+    so heredocs and multi-line snippets survive as one block."""
+    beats, buf, lines, i = [], [], text.splitlines(), 0
+    def flush():
+        if any(l.strip() for l in buf):
+            beats.append(("prose", "\n".join(buf).strip("\n")))
+        buf.clear()
+    while i < len(lines):
+        s = lines[i].strip()
+        tag = s[3:].strip() if s.startswith("```") else ""
+        if s == "---":
+            flush(); beats.append(("pause", None)); i += 1
+        elif tag in ("run", "run-manual", "az"):
+            flush(); raw = []; i += 1
+            while i < len(lines) and not lines[i].strip().startswith("```"):
+                raw.append(lines[i]); i += 1      # verbatim — keep indentation
+            i += 1                                 # skip the closing fence
+            while raw and not raw[0].strip():  raw.pop(0)    # trim blank edges
+            while raw and not raw[-1].strip(): raw.pop()
+            if raw:
+                beats.append(("run", (tag, raw)))
+        else:
+            buf.append(lines[i]); i += 1
+    flush()
+    return beats
+
+# az subcommands that only read version info or compile Bicep locally — no
+# authentication, no cloud call, no cost. Everything else az does is treated as
+# cloud (present-only). Keep this list tight; when in doubt, leave it out.
+SAFE_AZ = {"--version", "version", "bicep build", "bicep version",
+           "bicep format", "bicep lint", "bicep decompile"}
+_AZ_CALL = re.compile(r"(?:^|[|;&(]|\s)az\s+(--version|[a-z][a-z-]*(?:\s+[a-z][a-z-]*)?)")
+
+def block_is_cloud(lines):
+    """True if a run block would authenticate to Azure, mutate cloud resources,
+    or cost money — so the tutor must PRESENT it for the learner to run under
+    their own login, never auto-fire it. Safe-by-default: anything not
+    positively recognised as local & read-only is treated as cloud.
+
+    THIS is aztrain's key divergence from the redhat/pytrain tutors, whose run
+    blocks execute on a throwaway machine. Here they'd hit the learner's real
+    subscription, so `az login`, `az group create`, `az deployment ... create`
+    etc. are never run for them."""
+    for ln in lines:
+        code = ln.split("#", 1)[0]
+        for m in _AZ_CALL.finditer(code):
+            if m.group(1).strip() not in SAFE_AZ:
+                return True
+        if re.search(r"\b(azd|terraform|pulumi|kubectl|helm)\b", code):
+            return True
+        if re.search(r"\bbicep\s+(deploy|publish|restore)\b", code):
+            return True
+    return False
+
+def run_lesson(beats, cwd=None):
+    """Walk the learner through a parsed lesson. Prose is paced with pauses.
+    A run block that is local & read-only can be run here (Enter), typed by the
+    learner in a real shell (t), skipped (s) or the lesson quit (q). A cloud
+    block is only shown — the learner runs it themselves (t opens a shell under
+    their own az login). Returns False if the learner quit early."""
+    for kind, payload in beats:
+        if kind == "prose":
+            print(payload)
+        elif kind == "pause":
+            if ask(DIM("\n  [Enter to continue · q to stop] ")) in ("q", "quit"):
+                return False
+            print()
+        elif kind == "run":
+            tag, lines = payload
+            manual = tag in ("run-manual", "az") or block_is_cloud(lines)
+            print()
+            if manual:
+                print(BLD("  Run this yourself") + DIM("  (under your own az login — "
+                          "aztrain won't touch the cloud for you):"))
+            else:
+                print(BLD("  Your turn — run this:"))
+            for line in lines:
+                print(GRN("    " + line))
+            if manual:
+                ans = ask(DIM("  [Enter to continue · t to open a shell and run it "
+                              "· s skip · q stop] "))
+            else:
+                ans = ask(DIM("  [Enter to run it here · t to type it yourself "
+                              "· s skip · q stop] "))
+            if ans in ("q", "quit"):
+                return False
+            if ans in ("s", "skip"):
+                continue
+            if ans in ("t", "type"):
+                print(DIM("  Shell open — type the command above yourself "
+                          "(Tab autocompletes)."))
+                print(DIM("  Run it, then `exit` (or Ctrl-D) to come back to the lesson."))
+                subprocess.run(["bash", "-i"], cwd=cwd)
+                print(DIM("  ── back to the lesson " + "─" * 26))
+                continue
+            if manual:
+                continue                       # Enter on a cloud block: never run it
+            print(DIM("  ── output " + "─" * 40))
+            subprocess.run(["bash", "-c", "\n".join(lines)], cwd=cwd)
+            print(DIM("  " + "─" * 49))
+    return True
+
+def _offer_practice(st, tid, meta, short, is_cloud):
+    """Close a lesson by handing off to a solo attempt."""
+    if is_cloud:
+        print(DIM("This task provisions real Azure resources — start it when you're "
+                  "ready\n(your az login, your bill):  ") + f"{SELF} start {short}")
+        return
+    if ask(BLD("Set it up so you can try it now? ")
+           + DIM("[Enter = yes, q = later] ")) not in ("q", "quit"):
+        launch_task(st, tid, meta, provision=True)
+    else:
+        print(DIM("When you're ready:  ") + f"{SELF} start {short}")
+
+def cmd_learn(args):
+    """Teach a task like a tutor: a paced lecture from learn.md that tells you
+    what to run as you go, then hands off to a solo attempt. With no id it
+    teaches the next new task — the same one `train` would give you."""
+    tasks = discover()
+    st = load_state()
+    if args:
+        tid = resolve(tasks, args[0])
+    else:
+        nxt = next_new(tasks, st, cloud_ready())
+        if nxt is None:
+            print(DIM("You've started every task already. Revisit a lesson with:  ")
+                  + f"{SELF} learn <id>")
+            return
+        tid = nxt[0]
+    meta = tasks[tid]
+    short = leaf_of(tid)
+    is_cloud = meta.get("kind", "local") != "local"
+    print(BLD(f"\nLESSON — {meta.get('domain', domain_of(tid))}: {meta['title']}")
+          + DIM(f"  [{tid}]"))
+    print(DIM(f"objective: {meta.get('objective','')}"))
+    print("─" * 60)
+
+    # Local tasks: scaffold a workspace to follow along in (safe, local, and it
+    # becomes the current task). Cloud tasks: NEVER provision during a lesson —
+    # teaching is read-only; provisioning is the learner's explicit `start`.
+    ws = ws_dir(tid)
+    if not is_cloud:
+        ws = populate_workspace(tid, meta)
+        mark_current(st, tid)
+    else:
+        ws.mkdir(parents=True, exist_ok=True)
+
+    lesson = meta["_dir"] / "learn.md"
+    if not lesson.exists():
+        print(DIM("No written lesson for this task yet — read the spec, give it a"))
+        print(DIM("go, and reveal a worked solution with  ") + f"{INVOKE} solution")
+        print("\n" + (meta["_dir"] / "prompt.md").read_text().rstrip())
+        print("─" * 60)
+        _offer_practice(st, tid, meta, short, is_cloud)
+        return
+
+    if is_cloud:
+        print(YEL("This is a cloud task — the commands below are ones you run "
+                  "YOURSELF, under\nyour own az login. aztrain never runs az for "
+                  "you or provisions during a lesson.\n"))
+    finished = run_lesson(parse_lesson(lesson.read_text()), cwd=str(ws))
+    print("─" * 60)
+    if not finished:
+        print(DIM("Lesson paused. Pick it back up any time:  ") + f"{SELF} learn {short}")
+        return
+    print(GRN("That's the lesson.")
+          + DIM("  Best way to make it stick is to do it yourself."))
+    _offer_practice(st, tid, meta, short, is_cloud)
+
 COMMANDS = {
+    "learn": cmd_learn, "train": cmd_train, "next": cmd_train,
     "list": cmd_list, "start": cmd_start, "check": cmd_check,
     "solution": cmd_solution, "reset": cmd_reset, "status": cmd_status,
     "teardown": cmd_teardown,

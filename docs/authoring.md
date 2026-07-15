@@ -16,6 +16,7 @@ task's resource group.
 | `starter/` | local, optional | scaffold copied to the learner's workspace |
 | `setup.sh` | whatif/live | provisions the starting state, idempotent, only inside `$AZTRAIN_RG` |
 | `fixture.json`, `expected.json` | katas | canned `az`/Log-Analytics output checked into the repo |
+| `learn.md` | optional | the tutor lesson shown by `aztrain learn` (see below) |
 
 ## meta.json
 
@@ -54,6 +55,67 @@ also the cwd), `AZTRAIN_RG` (`rg-aztrain-<leaf>`), `AZTRAIN_LOCATION`
 - **No secrets** anywhere in the repo — prompts must route credentials to a
   password manager, and AZ-400 secret-hygiene tasks grade *by inspection*
   that none landed in YAML or git history.
+
+## `learn.md` (optional lesson)
+
+The interactive lesson `aztrain learn` walks a learner through *before* they
+attempt the task — for people meeting the material for the first time, not just
+being tested on it. Optional: with no `learn.md`, `learn` falls back to showing
+the prompt and pointing at `solution`. `aztrain train` never needs it.
+
+It's read as a **tutor script**: plain, readable prose plus two markers —
+
+- A line that is exactly `---` is a **pause**: everything above it prints, then
+  the tutor waits ("Enter to continue") before going on. Use it to break the
+  lecture into digestible beats.
+- A fenced **run block** is a step to try. Three fences, differing only in
+  whether the tutor may execute it:
+
+  | fence | meaning |
+  |---|---|
+  | ` ```run ` | a step the tutor MAY run for the learner — **only if it classifies as local & read-only** |
+  | ` ```run-manual ` / ` ```az ` | **always present-only** — shown for the learner to run themselves |
+
+  Everything else prints as-is, so write plain text (`$ command` for
+  illustrative snippets), not heavy Markdown.
+
+### Azure safety — the divergence from the redhat/pytrain tutors
+
+Those tutors run every block on a throwaway machine. **aztrain runs on the
+learner's real box against their real subscription**, so a run block **must
+never auto-execute anything that authenticates to Azure, mutates cloud
+resources, or costs money.**
+
+This is enforced **safe-by-default in the runner**, not left to author
+discipline: even inside a plain ` ```run ` fence, `run_lesson` re-classifies the
+block and refuses to auto-run it if it sees anything but local, read-only work.
+Only a tight allow-list auto-runs — `az --version`, `az bicep build|version|
+lint|format|decompile`, and non-`az` shell (`cat`, `python3 tools/…`, heredocs).
+Anything else — `az login`, `az account …`, `az group/deployment … create`,
+`az bicep install`, `azd`/`terraform`/`kubectl`, `bicep deploy` — is **presented
+only**: the learner runs it themselves, and `t` opens an interactive shell (with
+Tab autocompletion) under their own `az login`.
+
+Authoring rules that follow:
+
+- Put **cloud commands** (`az login`, provisioning, deployments) in ` ```az `
+  blocks and phrase the prose as "Run this yourself" — never "the tutor runs
+  this". They are teaching text, executed only by the learner.
+- Only ` ```run ` blocks that are genuinely local — compiling Bicep with
+  `az bicep build`, running a `tools/` grader against a fixture, writing a
+  scratch file with a heredoc — may rely on auto-run.
+- For **local (Bicep/KQL) tasks**, `learn` scaffolds the workspace first so
+  `$AZTRAIN_WS/main.bicep` exists to compile. For **cloud tasks it provisions
+  nothing** — teaching is read-only; the learner triggers `setup.sh` via
+  `aztrain start`.
+
+House style (same five beats as the sibling trainers), interleaved with `---`
+pauses and run blocks: **THE IDEA · WHY IT MATTERS · HOW TO DO IT · CHECK IT
+WORKED · GOTCHAS**. Teach the *concept and the flags inline* — assume the
+learner has never seen `--query`/JMESPath or a Bicep resource block before. See
+`tasks/setup/00-subscription-safety/` (the safe cloud showcase) and
+`tasks/az104/storage/01-bicep-storage-account/` (Bicep from zero) for worked
+examples.
 
 ## Cost rails for whatif/live tasks (non-negotiable, reviewed in every PR)
 
